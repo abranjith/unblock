@@ -9,10 +9,14 @@ __io_attrs_to_asynchify = ["ctermid", "environ", "environb", "chdir", "fchdir", 
 "fstat", "fstatvfs", "fsync", "ftruncate", "get_blocking", "isatty", "lockf", "lseek", "open", "openpty", "pipe", "pipe2", "posix_fallocate", "posix_fadvise",
 "pread", "preadv", "pwrite", "pwritev", "read", "sendfile", "readv", "tcgetpgrp", "tcsetpgrp", "ttyname", "write", "writev", "get_terminal_size", "access",
 "chdir", "chflags", "chmod", "chown", "chroot", "fchdir", "getcwd", "getcwdb", "lchflags", "lchmod", "lchown", "link", "listdir", "lstat", "mkdir", "makedirs",
-"mkfifo", "mknod", "pathconf", "readlink", "remove", "removedirs", "rename", "renames", "replace", "rmdir", "statvfs", "symlink", "sync", "truncate", "unlink",
-"utime", "memfd_create", "getxattr", "listxattr", "removexattr", "setxattr", "abort"]
+"mkfifo", "mknod", "pathconf", "readlink", "remove", "removedirs", "rename", "renames", "replace", "rmdir", "stat", "statvfs", "symlink", "sync", "truncate", "unlink",
+"utime", "memfd_create", "getxattr", "listxattr", "removexattr", "setxattr", "abort", "add_dll_directory", "execl", "execle", "execlp", "execlpe", "execv", "execve",
+"execvp", "execvpe", "_exit", "fork", "forkpty", "kill", "killpg", "nice", "pidfd_open", "plock", "popen", "posix_spawn", "posix_spawnp", "register_at_fork",
+"spawnl", "spawnle", "spawnlp", "spawnlpe", "spawnv", "spawnve", "spawnvp", "spawnvpe", "startfile", "system", "times", "wait", "waitid", "waitpid", "wait3", "wait4",
+"WCOREDUMP", "WIFCONTINUED", "WIFSTOPPED", "WIFSIGNALED", "WIFEXITED", "WEXITSTATUS", "WSTOPSIG", "WTERMSIG", "sched_setscheduler", "sched_getscheduler", "sched_setparam",
+"sched_getparam", "sched_rr_get_interval", "sched_yield", "sched_setaffinity", "sched_getaffinity", "confstr", "cpu_count", "getloadavg", "sysconf", ""]
 
-__cpu_attrs_to_asynchify = ["fsencode", "fsdecode"]
+__cpu_attrs_to_asynchify = ["fsencode", "fsdecode", "getrandom", "urandom"]
 
 #TODO - scandir
 #TODO - walk, fwalk

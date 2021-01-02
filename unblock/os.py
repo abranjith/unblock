@@ -1,6 +1,58 @@
 import os as os_sync
-from .core import asyncify, asyncify_x
+from .core import asyncify, asyncify_x, AsyncBase, asyncify_func
 
+
+class _AsyncIterBase(AsyncBase):
+
+    def __init__(self, original_obj, iter_obj_type = None):
+        super().__init__(original_obj)
+        self._iter_obj_type = iter_obj_type
+    
+    def __aiter__(self):
+        self._itrtr = iter(self._original_obj)
+        return self
+    
+    #see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
+    async def __anext__(self):
+        def _next():
+            try:
+                result = next(self._itrtr)
+                if self._iter_obj_type:
+                    return self._iter_obj_type(result)
+                return result
+            except StopIteration:
+				raise StopAsyncIteration
+        return await asyncify_func(_next)()
+
+class _AsyncCtxIterBase(_AsyncIterBase):
+
+    @property
+    def __attrs_to_asynchify(self):
+        return ["close"]
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.close()
+    
+class AsyncDirEntry(AsyncBase):
+    
+    @property
+    def __attrs_to_asynchify(self):
+        return ["inode", "is_dir", "is_file", "is_symlink", "stat"]
+
+async def scandir(*args, **kwargs):
+    sd = await asyncify_func(os_sync.scandir)(*args, **kwargs)
+    return _AsyncCtxIterBase(sd, AsyncDirEntry)
+
+def walk(*args, **kwargs):
+    gtr = os_sync.walk(*args, **kwargs)
+    return _AsyncIterBase(gtr)
+
+def fwalk(*args, **kwargs):
+    gtr = os_sync.fwalk(*args, **kwargs)
+    return _AsyncIterBase(gtr)
 
 __io_attrs_to_asynchify = ["ctermid", "environ", "environb", "chdir", "fchdir", "getcwd", "getenv", "getenvb", "get_exec_path", "getegid", "geteuid", "getgid", 
 "getgrouplist", "getgroups", "getlogin", "getpgid", "getpgrp", "getpid", "getppid", "getpriority", "getresuid", "getresgid", "getuid", "initgroups", "putenv", 
@@ -17,9 +69,6 @@ __io_attrs_to_asynchify = ["ctermid", "environ", "environb", "chdir", "fchdir", 
 "sched_getparam", "sched_rr_get_interval", "sched_yield", "sched_setaffinity", "sched_getaffinity", "confstr", "cpu_count", "getloadavg", "sysconf", ""]
 
 __cpu_attrs_to_asynchify = ["fsencode", "fsdecode", "getrandom", "urandom"]
-
-#TODO - scandir
-#TODO - walk, fwalk
 
 #direct invoke by default
 def __getattr__(name):

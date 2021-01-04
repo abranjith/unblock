@@ -1,15 +1,7 @@
 from functools import singledispatch, wraps
 import zipfile as zipfile_sync
-from .core import asyncify_func, AsyncBase
+from .core import asyncify_func, AsyncBase, AsyncCtxMgrBase
 from .io.binary import AsyncBufferedIOBase
-
-class _AsyncCtxBase(AsyncBase):
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        await self.close()
 
 class AsyncZipInfo(AsyncBase):
 
@@ -28,7 +20,7 @@ class AsyncZipExtFile(AsyncBufferedIOBase):
         methods = super()._attrs_to_asynchify + ["peek"]
         return methods
 
-class AsyncZipFile(_AsyncCtxBase):
+class AsyncZipFile(AsyncCtxMgrBase):
 
     @classmethod
     async def create(cls, *args, **kwargs):

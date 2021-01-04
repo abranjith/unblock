@@ -143,3 +143,57 @@ class AsyncXBase(_AsyncBase):
         if name in self._attrs_to_asynchify:
             return asyncify_x(attr)
         return attr
+
+class AsyncIterBase(AsyncBase):
+
+    def __aiter__(self):
+        self._itrtr = iter(self._original_obj)
+        return self
+    
+    #see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
+    async def __anext__(self):
+        def _next():
+            try:
+                return next(self._itrtr)
+            except StopIteration:
+                raise StopAsyncIteration
+        return await asyncify_func(_next)()
+
+class AsyncCtxMgrBase(AsyncBase):
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        if hasattr(self, "close"):
+            await self.close()
+
+class AsyncCtxMgrIterBase(AsyncIterBase, AsyncCtxMgrBase):
+    """ objects that support iterator protocol & context manager """
+
+class AsyncXIterBase(AsyncXBase):
+
+    def __aiter__(self):
+        self._itrtr = iter(self._original_obj)
+        return self
+    
+    #see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
+    async def __anext__(self):
+        def _next():
+            try:
+                return next(self._itrtr)
+            except StopIteration:
+                raise StopAsyncIteration
+        return await asyncify_func_x(_next)()
+
+class AsyncXCtxMgrBase(AsyncXBase):
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        if hasattr(self, "close"):
+            await self.close()
+
+class AsyncXCtxMgrIterBase(AsyncXIterBase, AsyncXCtxMgrBase):
+    """ objects that support iterator protocol & context manager """

@@ -1,17 +1,8 @@
 from functools import wraps
 import fileinput as fileinput_sync
-from .core import asyncify_func, AsyncBase
+from .core import asyncify_func, AsyncBase, AsyncCtxMgrIterBase
 
-class _AsyncIterMixin(object):
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        await self.close()
-
-    async def __aiter__(self):
-        return self
+class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
 
     async def __anext__(self):
         line = await self.readline()
@@ -20,10 +11,7 @@ class _AsyncIterMixin(object):
         else:
             raise StopAsyncIteration
 
-class _AsyncIterBase(AsyncBase, _AsyncIterMixin):
-    pass
-
-class AsyncFileInput(_AsyncIterBase):
+class AsyncFileInput(_AsyncCtxIterBase):
 
     @property
     def _attrs_to_asynchify(self):

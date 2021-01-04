@@ -3,17 +3,7 @@ import tarfile as tarfile_sync
 from .core import asyncify_func, AsyncBase
 from .io.binary import AsyncBufferedIOBase
 
-class AsyncTarInfo(AsyncBase):
-
-    def __init__(self, *args, **kwargs):
-        self._original_obj = tarfile_sync.TarInfo(*args, **kwargs)
-    
-    fromtarfile = asyncify_func(tarfile_sync.TarInfo.fromtarfile)
-
-class _AsyncCtxIterBase(AsyncBase):
-
-    async def __aenter__(self):
-        return self
+class _AsyncCtxIterBase(AsyncIterBase):
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         if exc_type is None:
@@ -25,10 +15,6 @@ class _AsyncCtxIterBase(AsyncBase):
                 await asyncify_func(self.fileobj.close)()
             self.closed = True
     
-    def __aiter__(self):
-        self._itrtr = iter(self._original_obj)
-        return self
-
     #see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
     async def __anext__(self):
         def _next():
@@ -37,6 +23,13 @@ class _AsyncCtxIterBase(AsyncBase):
 			except StopIteration:
 				raise StopAsyncIteration
         return await asyncify_func(_next)()
+
+class AsyncTarInfo(AsyncBase):
+
+    def __init__(self, *args, **kwargs):
+        self._original_obj = tarfile_sync.TarInfo(*args, **kwargs)
+    
+    fromtarfile = asyncify_func(tarfile_sync.TarInfo.fromtarfile)
 
 class AsyncTarFile(_AsyncCtxIterBase):
 

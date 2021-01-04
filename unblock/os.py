@@ -1,17 +1,16 @@
 import os as os_sync
-from .core import asyncify, AsyncBase, asyncify_func
+from .core import asyncify, AsyncBase, asyncify_func, AsyncCtxMgrIterBase, AsyncIterBase
 
-class _AsyncIterBase(AsyncBase):
+class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
 
     def __init__(self, original_obj, iter_obj_type = None):
         super().__init__(original_obj)
         self._iter_obj_type = iter_obj_type
-    
-    def __aiter__(self):
-        self._itrtr = iter(self._original_obj)
-        return self
-    
-    #see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
+
+    @property
+    def __attrs_to_asynchify(self):
+        return ["close"]
+
     async def __anext__(self):
         def _next():
             try:
@@ -22,18 +21,6 @@ class _AsyncIterBase(AsyncBase):
             except StopIteration:
                 raise StopAsyncIteration
         return await asyncify_func(_next)()
-
-class _AsyncCtxIterBase(_AsyncIterBase):
-
-    @property
-    def __attrs_to_asynchify(self):
-        return ["close"]
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        await self.close()
     
 class AsyncDirEntry(AsyncBase):
     
@@ -47,11 +34,11 @@ async def scandir(*args, **kwargs):
 
 def walk(*args, **kwargs):
     gtr = os_sync.walk(*args, **kwargs)
-    return _AsyncIterBase(gtr)
+    return AsyncIterBase(gtr)
 
 def fwalk(*args, **kwargs):
     gtr = os_sync.fwalk(*args, **kwargs)
-    return _AsyncIterBase(gtr)
+    return AsyncIterBase(gtr)
 
 __io_attrs_to_asynchify = ["ctermid", "environ", "environb", "chdir", "fchdir", "getcwd", "getenv", "getenvb", "get_exec_path", "getegid", "geteuid", "getgid", 
 "getgrouplist", "getgroups", "getlogin", "getpgid", "getpgrp", "getpid", "getppid", "getpriority", "getresuid", "getresgid", "getuid", "initgroups", "putenv", 

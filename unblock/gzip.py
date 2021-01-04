@@ -1,15 +1,15 @@
 from functools import singledispatch, wraps
 from io import TextIOWrapper
 import gzip as gzip_sync
-from .core import asyncify_func, asyncify_func_x
+from .core import asyncify_func
 from .io.text import AsyncTextIOWrapper
 from .io.binary import AsyncBufferedIOBase
 
 class AsyncGzipFile(AsyncBufferedIOBase):
 
     @property
-    def __attrs_to_asynchify(self):
-        methods = super().__attrs_to_asynchify + ["peek"]
+    def _attrs_to_asynchify(self):
+        methods = super()._attrs_to_asynchify + ["peek"]
         return methods
 
 @wraps(gzip_sync.open)
@@ -30,5 +30,5 @@ def _(file_object):
 def _(file_object):
     return AsyncGzipFile(file_object)
 
-compress = asyncify_func_x(gzip_sync.compress)
-decompress = asyncify_func_x(gzip_sync.decompress)
+compress = asyncify_func(gzip_sync.compress)
+decompress = asyncify_func(gzip_sync.decompress)

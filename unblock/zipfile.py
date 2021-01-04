@@ -1,9 +1,9 @@
-from functools import singledispatch
+from functools import singledispatch, wraps
 import zipfile as zipfile_sync
-from .core import asyncify_func_x, AsyncXBase
+from .core import asyncify_func, AsyncBase
 from .io.binary import AsyncBufferedIOBase
 
-class _AsyncCtxBase(AsyncXBase):
+class _AsyncCtxBase(AsyncBase):
 
     async def __aenter__(self):
         return self
@@ -11,12 +11,12 @@ class _AsyncCtxBase(AsyncXBase):
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.close()
 
-class AsyncZipInfo(AsyncXBase):
+class AsyncZipInfo(AsyncBase):
 
     def __init__(self, *args, **kwargs):
         self._original_obj = zipfile_sync.ZipInfo(*args, **kwargs)
     
-    from_file = asyncify_func_x(zipfile_sync.ZipInfo.from_file)
+    from_file = asyncify_func(zipfile_sync.ZipInfo.from_file)
 
 class _AsyncZipWriteFile(AsyncBufferedIOBase):
     """Implements write and close from parent class"""
@@ -24,8 +24,8 @@ class _AsyncZipWriteFile(AsyncBufferedIOBase):
 class AsyncZipExtFile(AsyncBufferedIOBase):
     
     @property
-    def __attrs_to_asynchify(self):
-        methods = super().__attrs_to_asynchify + ["peek"]
+    def _attrs_to_asynchify(self):
+        methods = super()._attrs_to_asynchify + ["peek"]
         return methods
 
 class AsyncZipFile(_AsyncCtxBase):
@@ -35,12 +35,12 @@ class AsyncZipFile(_AsyncCtxBase):
         return await aopen(*args, **kwargs)
     
     @property
-    def __attrs_to_asynchify(self):
-        methods = ["close", "getinfo", "testzip", "read", "extract", "extractall", "write", "writestr" ]
+    def _attrs_to_asynchify(self):
+        methods = ["close", "getinfo", "testzip", "read", "extract", "extractall", "write", "writestr", "infolist", "namelist" ]
         return methods
 
     async def open(self, *args, **kwargs):
-        f = await asyncify_func_x(zipfile_sync.open)(*args, **kwargs)
+        f = await asyncify_func(zipfile_sync.open)(*args, **kwargs)
         file_obj = zip_wrap(f)
         return file_obj
 
@@ -59,9 +59,8 @@ def _(file_object):
 def _open(*args, **kwargs):
     return zipfile_sync.ZipFile(*args, **kwargs)
 
-#recomended to use this instead of _AsyncZipFile
 async def aopen(*args, **kwargs):
-    f = await asyncify_func_x(_open)(*args, **kwargs)
+    f = await asyncify_func(_open)(*args, **kwargs)
     return AsyncZipFile(f)
 
-is_zipfile = asyncify_func_x(zipfile_sync.is_zipfile)
+is_zipfile = asyncify_func(zipfile_sync.is_zipfile)

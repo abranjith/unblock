@@ -1,6 +1,5 @@
 import os as os_sync
-from .core import asyncify, asyncify_x, AsyncBase, asyncify_func
-
+from .core import asyncify, AsyncBase, asyncify_func
 
 class _AsyncIterBase(AsyncBase):
 
@@ -21,7 +20,7 @@ class _AsyncIterBase(AsyncBase):
                     return self._iter_obj_type(result)
                 return result
             except StopIteration:
-				raise StopAsyncIteration
+                raise StopAsyncIteration
         return await asyncify_func(_next)()
 
 class _AsyncCtxIterBase(_AsyncIterBase):
@@ -66,9 +65,8 @@ __io_attrs_to_asynchify = ["ctermid", "environ", "environb", "chdir", "fchdir", 
 "execvp", "execvpe", "_exit", "fork", "forkpty", "kill", "killpg", "nice", "pidfd_open", "plock", "popen", "posix_spawn", "posix_spawnp", "register_at_fork",
 "spawnl", "spawnle", "spawnlp", "spawnlpe", "spawnv", "spawnve", "spawnvp", "spawnvpe", "startfile", "system", "times", "wait", "waitid", "waitpid", "wait3", "wait4",
 "WCOREDUMP", "WIFCONTINUED", "WIFSTOPPED", "WIFSIGNALED", "WIFEXITED", "WEXITSTATUS", "WSTOPSIG", "WTERMSIG", "sched_setscheduler", "sched_getscheduler", "sched_setparam",
-"sched_getparam", "sched_rr_get_interval", "sched_yield", "sched_setaffinity", "sched_getaffinity", "confstr", "cpu_count", "getloadavg", "sysconf", ""]
-
-__cpu_attrs_to_asynchify = ["fsencode", "fsdecode", "getrandom", "urandom"]
+"sched_getparam", "sched_rr_get_interval", "sched_yield", "sched_setaffinity", "sched_getaffinity", "confstr", "cpu_count", "getloadavg", "sysconf", "fsencode", "fsdecode", 
+"getrandom", "urandom"]
 
 #direct invoke by default
 def __getattr__(name):
@@ -77,6 +75,4 @@ def __getattr__(name):
     attr = getattr(os_sync, name)
     if name in __io_attrs_to_asynchify:
         return asyncify(attr)
-    if name in __cpu_attrs_to_asynchify:
-        return asyncify_x(attr)
     return attr

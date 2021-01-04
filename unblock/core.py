@@ -121,7 +121,7 @@ class _AsyncBase(object):
             self.__str__ = original_obj.__str__
 
     @property
-    def __attrs_to_asynchify(self):
+    def _attrs_to_asynchify(self):
         return []
 
 class AsyncBase(_AsyncBase):
@@ -130,7 +130,7 @@ class AsyncBase(_AsyncBase):
         if not hasattr(self._original_obj, name):
             raise AttributeError(f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'")
         attr = getattr(self._original_obj, name)
-        if name in self.__attrs_to_asynchify:
+        if name in self._attrs_to_asynchify:
             return asyncify(attr)
         return attr
 
@@ -140,6 +140,6 @@ class AsyncXBase(_AsyncBase):
         if not hasattr(self._original_obj, name):
             raise AttributeError(f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'")
         attr = getattr(self._original_obj, name)
-        if name in self.__attrs_to_asynchify:
+        if name in self._attrs_to_asynchify:
             return asyncify_x(attr)
         return attr

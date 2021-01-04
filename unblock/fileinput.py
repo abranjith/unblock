@@ -26,7 +26,7 @@ class _AsyncIterBase(AsyncBase, _AsyncIterMixin):
 class AsyncFileInput(_AsyncIterBase):
 
     @property
-    def __attrs_to_asynchify(self):
+    def _attrs_to_asynchify(self):
         methods = ["close", "__getitem__", "__del__", "nextfile", "readline", "fileno"]
         return methods
 

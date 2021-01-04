@@ -24,7 +24,7 @@ class _AsyncIterBase(AsyncBase, _AsyncIterMixin):
 class AsyncIOBase(_AsyncIterBase):
 
     @property
-    def __attrs_to_asynchify(self):
+    def _attrs_to_asynchify(self):
         methods = ["close", "fileno", "flush", "isatty", "readable", "readline", "readlines", "seek", "seekable", "tell",
                             "truncate", "writable", "writelines"]
         return methods

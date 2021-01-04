@@ -44,7 +44,7 @@ class Registry:
     
     @staticmethod
     def get_processpool_executor():
-        Registry._process_executor = Registry._process_executor or ProcessPoolExecutor(thread_name_prefix = THREAD_NAME_PREFIX)
+        Registry._process_executor = Registry._process_executor or ProcessPoolExecutor()
         return Registry._process_executor
 
     @staticmethod

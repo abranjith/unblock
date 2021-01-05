@@ -8,7 +8,7 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
         self._iter_obj_type = iter_obj_type
 
     @property
-    def __attrs_to_asynchify(self):
+    def _attrs_to_asynchify(self):
         return ["close"]
 
     async def __anext__(self):
@@ -25,7 +25,7 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
 class AsyncDirEntry(AsyncBase):
     
     @property
-    def __attrs_to_asynchify(self):
+    def _attrs_to_asynchify(self):
         return ["inode", "is_dir", "is_file", "is_symlink", "stat"]
 
 async def scandir(*args, **kwargs):

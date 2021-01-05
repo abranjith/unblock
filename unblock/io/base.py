@@ -1,12 +1,6 @@
-from ..core import asyncify, AsyncBase
+from ..core import asyncify, AsyncBase, AsyncCtxMgrIterBase
 
-class _AsyncIterMixin(object):
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        await self.close()
+class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
 
     def __aiter__(self):
         return self
@@ -18,10 +12,7 @@ class _AsyncIterMixin(object):
         else:
             raise StopAsyncIteration
 
-class _AsyncIterBase(AsyncBase, _AsyncIterMixin):
-    pass
-
-class AsyncIOBase(_AsyncIterBase):
+class AsyncIOBase(_AsyncCtxIterBase):
 
     @property
     def _attrs_to_asynchify(self):

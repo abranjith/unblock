@@ -35,7 +35,9 @@ def asyncify_cls(cls):
     return cls
 
 def asyncify_x(arg):
-    if inspect.isroutine(arg):
+    if inspect.iscoroutinefunction(arg):
+        return arg
+    elif inspect.isroutine(arg):
         return asyncify_func_x(arg)
     elif inspect.isclass(arg):
         return asyncify_cls_x(arg)

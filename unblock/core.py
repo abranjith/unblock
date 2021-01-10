@@ -29,7 +29,7 @@ async def _get_future_from_threadpool(fn):
 def asyncify_cls(cls):
     for attr_name, attr in cls.__dict__.items():
         #this is a generic logic to skip special methods
-        if (attr_name.starts_with(DUNDER) and attr_name.ends_with(DUNDER)):
+        if (attr_name.startswith(DUNDER) and attr_name.endswith(DUNDER)):
             continue
         setattr(cls, attr_name, asyncify(attr))
     return cls
@@ -58,7 +58,7 @@ async def _get_future_from_processpool(fn):
 def asyncify_cls_x(cls):
     for attr_name, attr in cls.__dict__.items():
         #this is a generic logic to skip special methods
-        if (attr_name.starts_with(DUNDER) and attr_name.ends_with(DUNDER)):
+        if (attr_name.startswith(DUNDER) and attr_name.endswith(DUNDER)):
             continue
         setattr(cls, attr_name, asyncify_x(attr))
     return cls

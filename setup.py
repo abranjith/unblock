@@ -11,7 +11,7 @@ from setuptools import setup
 
 # Package meta-data.
 NAME = 'unblock'
-DESCRIPTION = 'Simple solution to convert synchronous calls to asynchronous'
+DESCRIPTION = 'Simple solution to convert synchronous calls to asynchronous for use in asynchronous programming'
 URL = 'https://github.com/abranjith/unblock'
 EMAIL = 'abranjith@gmail.com'
 AUTHOR = 'ranjith'
@@ -42,9 +42,9 @@ setup(
     packages=['unblock', 'unblock.io'],
     install_requires=REQUIRED,
     include_package_data=True,
-    license='Apache',
+    license='Apache-2.0',
     classifiers=[
-        'License :: OSI Approved :: Apache License',
+        'License :: OSI Approved :: Apache-2.0 License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',

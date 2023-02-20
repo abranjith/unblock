@@ -73,7 +73,7 @@ async def _get_future_from_processpool(fn):
     return await loop.run_in_executor(executor, fn)
 
 
-def async_property(property):
+class async_property(property):
     def __init__(self, _fget, name=None, doc=None):
         self.__name__ = name or _fget.__name__
         self.__module__ = _fget.__module__
@@ -91,7 +91,7 @@ def async_property(property):
         return asyncify(self._fget)(obj)
 
 
-def async_cached_property(property):
+class async_cached_property(property):
     def __init__(self, _fget, name=None, doc=None):
         self.__name__ = name or _fget.__name__
         self.__module__ = _fget.__module__

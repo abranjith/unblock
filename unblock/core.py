@@ -17,11 +17,19 @@ def asyncify(arg):
 
 def asyncify_func(func):
     @wraps(func)
-    async def wrapper(*args, **kwargs):
-        fn = partial(func, *args, **kwargs)
-        return await _get_future_from_threadpool(fn)
+    def _fut(fn):
+        return _get_future_from_threadpool(fn)
 
-    return wrapper
+    @wraps(func)
+    async def _coro(fn):
+        return await _fut(fn)
+
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        fn = partial(func, *args, **kwargs)
+        return _fut(fn) if Registry.is_event_loop_running() else _coro(fn)
+
+    return _wrapper
 
 
 def asyncify_cls(cls):
@@ -33,10 +41,10 @@ def asyncify_cls(cls):
     return cls
 
 
-async def _get_future_from_threadpool(fn):
+def _get_future_from_threadpool(fn):
     loop = Registry.get_event_loop()
     executor = Registry.get_threadpool_executor()
-    return await loop.run_in_executor(executor, fn)
+    return loop.run_in_executor(executor, fn)
 
 
 def asyncify_pp(arg):
@@ -51,11 +59,19 @@ def asyncify_pp(arg):
 
 def asyncify_func_pp(func):
     @wraps(func)
-    async def wrapper(*args, **kwargs):
-        fn = partial(func, *args, **kwargs)
-        return await _get_future_from_processpool(fn)
+    def _fut(fn):
+        return _get_future_from_processpool(fn)
 
-    return wrapper
+    @wraps(func)
+    async def _coro(fn):
+        return await _fut(fn)
+
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        fn = partial(func, *args, **kwargs)
+        return _fut(fn) if Registry.is_event_loop_running() else _coro(fn)
+
+    return _wrapper
 
 
 def asyncify_cls_pp(cls):

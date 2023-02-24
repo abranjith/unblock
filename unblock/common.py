@@ -27,7 +27,7 @@ class Registry:
 
     @staticmethod
     def get_event_loop():
-        return Registry._loop or asyncio.get_running_loop()
+        return Registry._loop or Registry._get_default_event_loop()
 
     @staticmethod
     def register_threadpool_executor(executor):
@@ -52,6 +52,14 @@ class Registry:
         return Registry._process_executor
 
     @staticmethod
+    def is_event_loop_running():
+        try:
+            asyncio.get_running_loop()
+            return True
+        except RuntimeError:
+            return False
+
+    @staticmethod
     def _ensure_executor(executor, process_pool=False):
         if process_pool:
             if not isinstance(executor, ProcessPoolExecutor):
@@ -63,3 +71,7 @@ class Registry:
                 raise ValueError(
                     f"{executor} needs to be of type concurrent.futures.ThreadPoolExecutor"
                 )
+
+    @staticmethod
+    def _get_default_event_loop():
+        return asyncio.get_running_loop()

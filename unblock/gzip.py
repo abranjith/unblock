@@ -5,12 +5,13 @@ from .core import asyncify_func
 from .io.text import AsyncTextIOWrapper
 from .io.binary import AsyncBufferedIOBase
 
-class AsyncGzipFile(AsyncBufferedIOBase):
 
+class AsyncGzipFile(AsyncBufferedIOBase):
     @property
-    def _attrs_to_asynchify(self):
-        methods = super()._attrs_to_asynchify + ["peek"]
+    def _unblock_attrs_to_asynchify(self):
+        methods = super()._unblock_attrs_to_asynchify + ["peek"]
         return methods
+
 
 @wraps(gzip_sync.open)
 async def aopen(*args, **kwargs):
@@ -18,17 +19,21 @@ async def aopen(*args, **kwargs):
     file_obj = wrap(f)
     return file_obj
 
+
 @singledispatch
 def wrap(file_object):
     raise TypeError(f"Unsupported io type: {file_object}.")
+
 
 @wrap.register(TextIOWrapper)
 def _(file_object):
     return AsyncTextIOWrapper(file_object)
 
+
 @wrap.register(gzip_sync.GzipFile)
 def _(file_object):
     return AsyncGzipFile(file_object)
+
 
 compress = asyncify_func(gzip_sync.compress)
 decompress = asyncify_func(gzip_sync.decompress)

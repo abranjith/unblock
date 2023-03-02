@@ -2,8 +2,6 @@ import inspect
 from functools import wraps, partial
 from .common import Registry
 
-DUNDER = "__"
-
 
 def asyncify(arg):
     if inspect.iscoroutinefunction(arg):
@@ -35,7 +33,7 @@ def asyncify_func(func):
 def asyncify_cls(cls):
     for attr_name, attr in cls.__dict__.items():
         # this is a generic logic to skip special methods
-        if attr_name.startswith(DUNDER) and attr_name.endswith(DUNDER):
+        if attr_name.startswith("_"):
             continue
         setattr(cls, attr_name, asyncify(attr))
     return cls
@@ -77,16 +75,16 @@ def asyncify_func_pp(func):
 def asyncify_cls_pp(cls):
     for attr_name, attr in cls.__dict__.items():
         # this is a generic logic to skip special methods
-        if attr_name.startswith(DUNDER) and attr_name.endswith(DUNDER):
+        if attr_name.startswith("_"):
             continue
         setattr(cls, attr_name, asyncify_pp(attr))
     return cls
 
 
-async def _get_future_from_processpool(fn):
+def _get_future_from_processpool(fn):
     loop = Registry.get_event_loop()
     executor = Registry.get_processpool_executor()
-    return await loop.run_in_executor(executor, fn)
+    return loop.run_in_executor(executor, fn)
 
 
 class async_property(property):
@@ -147,7 +145,7 @@ class _AsyncBase(object):
             self.__str__ = original_obj.__str__
 
     @property
-    def _attrs_to_asynchify(self):
+    def _unblock_attrs_to_asynchify(self):
         return []
 
 
@@ -158,7 +156,7 @@ class AsyncBase(_AsyncBase):
                 f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'"
             )
         attr = getattr(self._original_obj, name)
-        if name in self._attrs_to_asynchify:
+        if name in self._unblock_attrs_to_asynchify:
             return asyncify(attr)
         return attr
 
@@ -170,7 +168,7 @@ class AsyncPPBase(_AsyncBase):
                 f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'"
             )
         attr = getattr(self._original_obj, name)
-        if name in self._attrs_to_asynchify:
+        if name in self._unblock_attrs_to_asynchify:
             return asyncify_pp(attr)
         return attr
 

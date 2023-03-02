@@ -1,7 +1,6 @@
-from functools import singledispatch, wraps
+from functools import wraps
 import tarfile as tarfile_sync
 from .core import asyncify_func, AsyncBase, AsyncIterBase
-from .io.binary import AsyncBufferedIOBase
 
 
 class _AsyncCtxIterBase(AsyncIterBase):
@@ -64,7 +63,7 @@ class AsyncTarFile(_AsyncCtxIterBase):
         return cls(f)
 
     @property
-    def _attrs_to_asynchify(self):
+    def _unblock_attrs_to_asynchify(self):
         methods = [
             "close",
             "getmember",

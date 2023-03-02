@@ -1,7 +1,7 @@
-from ..core import asyncify, AsyncBase, AsyncCtxMgrIterBase
+from ..core import AsyncCtxMgrIterBase
+
 
 class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
-
     def __aiter__(self):
         return self
 
@@ -12,10 +12,23 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
         else:
             raise StopAsyncIteration
 
-class AsyncIOBase(_AsyncCtxIterBase):
 
+class AsyncIOBase(_AsyncCtxIterBase):
     @property
-    def _attrs_to_asynchify(self):
-        methods = ["close", "fileno", "flush", "isatty", "readable", "readline", "readlines", "seek", "seekable", "tell",
-                            "truncate", "writable", "writelines"]
+    def _unblock_attrs_to_asynchify(self):
+        methods = [
+            "close",
+            "fileno",
+            "flush",
+            "isatty",
+            "readable",
+            "readline",
+            "readlines",
+            "seek",
+            "seekable",
+            "tell",
+            "truncate",
+            "writable",
+            "writelines",
+        ]
         return methods

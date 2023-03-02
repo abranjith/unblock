@@ -11,7 +11,7 @@ class AsyncBZ2Compressor(AsyncBase):
         self._original_obj = bz2_sync.BZ2Compressor(*args, **kwargs)
 
     @property
-    def _attrs_to_asynchify(self):
+    def _unblock_attrs_to_asynchify(self):
         methods = ["compress", "flush"]
         return methods
 
@@ -21,15 +21,15 @@ class AsyncBZ2Decompressor(AsyncBase):
         self._original_obj = bz2_sync.BZ2Decompressor(*args, **kwargs)
 
     @property
-    def _attrs_to_asynchify(self):
+    def _unblock_attrs_to_asynchify(self):
         methods = ["decompress"]
         return methods
 
 
 class AsyncBZ2File(AsyncBufferedIOBase):
     @property
-    def _attrs_to_asynchify(self):
-        methods = super()._attrs_to_asynchify + ["peek"]
+    def _unblock_attrs_to_asynchify(self):
+        methods = super()._unblock_attrs_to_asynchify + ["peek"]
         return methods
 
 

@@ -17,7 +17,7 @@ make_archive = asyncify_func(shutil_sync.make_archive)
 unpack_archive = asyncify_func(shutil_sync.unpack_archive)
 get_terminal_size = asyncify_func(shutil_sync.get_terminal_size)
 
-#direct invoke
+# direct invoke
 get_archive_formats = shutil_sync.get_archive_formats
 register_archive_format = shutil_sync.register_archive_format
 unregister_archive_format = shutil_sync.unregister_archive_format

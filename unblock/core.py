@@ -6,9 +6,9 @@ from .common import Registry
 def asyncify(arg):
     if inspect.iscoroutinefunction(arg):
         return arg
-    elif inspect.isroutine(arg):
+    if inspect.isroutine(arg):
         return asyncify_func(arg)
-    elif inspect.isclass(arg):
+    if inspect.isclass(arg):
         return asyncify_cls(arg)
     return arg
 
@@ -48,9 +48,9 @@ def _get_future_from_threadpool(fn):
 def asyncify_pp(arg):
     if inspect.iscoroutinefunction(arg):
         return arg
-    elif inspect.isroutine(arg):
+    if inspect.isroutine(arg):
         return asyncify_func_pp(arg)
-    elif inspect.isclass(arg):
+    if inspect.isclass(arg):
         return asyncify_cls_pp(arg)
     return arg
 

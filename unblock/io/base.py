@@ -9,8 +9,7 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
         line = await self.readline()
         if line:
             return line
-        else:
-            raise StopAsyncIteration
+        raise StopAsyncIteration
 
 
 class AsyncIOBase(_AsyncCtxIterBase):

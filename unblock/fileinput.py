@@ -1,6 +1,6 @@
 from functools import wraps
 import fileinput as fileinput_sync
-from .core import asyncify_func, AsyncBase, AsyncCtxMgrIterBase
+from .core import asyncify_func, AsyncCtxMgrIterBase
 
 
 class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
@@ -8,8 +8,7 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
         line = await self.readline()
         if line:
             return line
-        else:
-            raise StopAsyncIteration
+        raise StopAsyncIteration
 
 
 class AsyncFileInput(_AsyncCtxIterBase):

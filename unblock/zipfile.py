@@ -6,7 +6,10 @@ from .io.binary import AsyncBufferedIOBase
 
 class AsyncZipInfo(AsyncBase):
     def __init__(self, *args, **kwargs):
-        self._original_obj = zipfile_sync.ZipInfo(*args, **kwargs)
+        if(args and isinstance(args[0], zipfile_sync.ZipInfo)):
+            super().__init__(args[0])
+        else:
+            self._original_obj = zipfile_sync.ZipInfo(*args, **kwargs)
 
     from_file = asyncify_func(zipfile_sync.ZipInfo.from_file)
 
@@ -39,16 +42,20 @@ class AsyncZipFile(AsyncCtxMgrBase):
             "extractall",
             "write",
             "writestr",
-            "infolist",
             "namelist",
         ]
         return methods
 
     @wraps(zipfile_sync.ZipFile.open)
     async def open(self, *args, **kwargs):
-        f = await asyncify_func(zipfile_sync.ZipFile.open)(*args, **kwargs)
+        f = await asyncify_func(self._original_obj.open)(*args, **kwargs)
         file_obj = zip_wrap(f)
         return file_obj
+    
+    @wraps(zipfile_sync.ZipFile.infolist)
+    async def infolist(self, *args, **kwargs):
+        zipinfos = await asyncify_func(self._original_obj.infolist)(*args, **kwargs)
+        return [AsyncZipInfo(f) for f in zipinfos]
 
 
 class AsyncPyZipFile(AsyncZipFile):

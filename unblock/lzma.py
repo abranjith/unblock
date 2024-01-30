@@ -57,4 +57,3 @@ def _(file_object):
 
 compress = asyncify_func(lzma_sync.compress)
 decompress = asyncify_func(lzma_sync.decompress)
-is_check_supported = lzma_sync.is_check_supported

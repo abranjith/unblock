@@ -14,15 +14,14 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
 class AsyncFileInput(_AsyncCtxIterBase):
     @property
     def _unblock_attrs_to_asynchify(self):
-        methods = ["close", "__getitem__", "__del__", "nextfile", "readline", "fileno"]
+        methods = ["close", "__getitem__", "__del__", "nextfile", "readline"]
         return methods
 
 
 @wraps(fileinput_sync.input)
 async def input(*args, **kwargs):
     f = await asyncify_func(fileinput_sync.input)(*args, **kwargs)
-    file_obj = AsyncFileInput(f)
-    return file_obj
+    return AsyncFileInput(f)
 
 
 hook_compressed = asyncify_func(fileinput_sync.hook_compressed)

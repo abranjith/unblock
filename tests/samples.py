@@ -19,7 +19,7 @@ def sync_func(delay):
 async def run_sync_func(delay):
     print(f"starting sync_func at {time.strftime('%X')}")
     f = sync_func(delay)
-    print(f"waiting in sync_func {f}")
+    print(f"waiting in sync_func {f}", type(f))
     await asyncio.sleep(2)
     print("waiting done in sync_func")
     f.cancel()
@@ -32,6 +32,11 @@ async def run_sync_func(delay):
         print("cant cancel sync_func - ", f.cancelled())
     print(f"ending sync_func at {time.strftime('%X')}")
 
+def check_sync_func(delay):
+    print(f"starting sync_func at {time.strftime('%X')}")
+    f = sync_func(delay)
+    print(f"sync_func {f}", type(f))
+    print(f"ending sync_func at {time.strftime('%X')}")
 
 def _asyncify_test():
     time.sleep(2)
@@ -105,4 +110,5 @@ async def test_SampleAsyncProperty():
 if __name__ == "__main__":
     #asyncio.run(run_sync_func(1))  # not cancelled
     #asyncio.run(run_sync_func(3))   #cancelled
-    asyncio.run(test_SampelClsAsyncify())
+    #check_sync_func(1)  #creates coroutine
+    asyncio.run(test_SampleAsyncProperty())

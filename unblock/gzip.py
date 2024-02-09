@@ -7,9 +7,9 @@ from .io.binary import AsyncBufferedIOBase
 
 
 class AsyncGzipFile(AsyncBufferedIOBase):
-    @property
+    
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + ["peek"]
+        methods = super()._unblock_attrs_to_asynchify() + ["peek"]
         return methods
 
 

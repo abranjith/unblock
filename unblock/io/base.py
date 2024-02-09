@@ -13,7 +13,7 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
 
 
 class AsyncIOBase(_AsyncCtxIterBase):
-    @property
+    
     def _unblock_attrs_to_asynchify(self):
         methods = [
             "close",

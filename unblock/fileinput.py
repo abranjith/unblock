@@ -12,7 +12,7 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
 
 
 class AsyncFileInput(_AsyncCtxIterBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
         methods = ["close", "__getitem__", "__del__", "nextfile", "readline"]
         return methods

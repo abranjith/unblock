@@ -6,9 +6,6 @@
 Welcome to unblock's documentation!
 ===================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
 **About the project**
 *********************
@@ -27,11 +24,24 @@ Welcome to unblock's documentation!
       asyncio.run(my_sync_func())
 
 
+**Get It Now**
+***************
+.. code-block:: python
+
+   pip install unblockio
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+
+   features
+   tutorial
+   api
+
 
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

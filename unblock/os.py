@@ -7,7 +7,6 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
         super().__init__(original_obj)
         self._iter_obj_type = iter_obj_type
 
-    @property
     def _unblock_attrs_to_asynchify(self):
         return ["close"]
 
@@ -25,7 +24,7 @@ class _AsyncCtxIterBase(AsyncCtxMgrIterBase):
 
 
 class AsyncDirEntry(AsyncBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
         return ["inode", "is_dir", "is_file", "is_symlink", "stat"]
 

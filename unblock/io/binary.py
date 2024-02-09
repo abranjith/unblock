@@ -1,10 +1,9 @@
 from .base import AsyncIOBase
 
-
 class AsyncBufferedIOBase(AsyncIOBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + [
+        methods = super()._unblock_attrs_to_asynchify() + [
             "detach",
             "read",
             "read1",
@@ -20,23 +19,23 @@ class AsyncBytesIO(AsyncBufferedIOBase):
 
 
 class AsyncBufferedReader(AsyncBufferedIOBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + ["peek"]
+        methods = super()._unblock_attrs_to_asynchify() + ["peek"]
         return methods
 
 
 class AsyncBufferedWriter(AsyncBufferedIOBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + ["flush"]
+        methods = super()._unblock_attrs_to_asynchify() + ["flush"]
         return methods
 
 
 class AsyncBufferedRandom(AsyncBufferedIOBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + ["peek", "flush"]
+        methods = super()._unblock_attrs_to_asynchify() + ["peek", "flush"]
         return methods
 
 

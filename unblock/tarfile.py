@@ -4,6 +4,7 @@ from .core import asyncify_func, AsyncBase, AsyncIterBase
 
 
 class _AsyncCtxIterBase(AsyncIterBase):
+    
     async def __aexit__(self, exc_type, exc_value, traceback):
         if exc_type is None:
             await self.close()
@@ -13,16 +14,6 @@ class _AsyncCtxIterBase(AsyncIterBase):
             if not self._extfileobj:
                 await asyncify_func(self.fileobj.close)()
             self.closed = True
-
-    # see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
-    async def __anext__(self):
-        def _next():
-            try:
-                return next(self._itrtr)
-            except StopIteration:
-                raise StopAsyncIteration
-
-        return await asyncify_func(_next)()
 
 
 class AsyncTarInfo(AsyncBase):
@@ -62,7 +53,6 @@ class AsyncTarFile(_AsyncCtxIterBase):
         f = await asyncify_func(tarfile_sync.TarFile.xzopen)(*args, **kwargs)
         return cls(f)
 
-    @property
     def _unblock_attrs_to_asynchify(self):
         methods = [
             "close",

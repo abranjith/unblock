@@ -19,9 +19,9 @@ class _AsyncZipWriteFile(AsyncBufferedIOBase):
 
 
 class AsyncZipExtFile(AsyncBufferedIOBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + ["peek"]
+        methods = super()._unblock_attrs_to_asynchify() + ["peek"]
         return methods
 
 
@@ -31,7 +31,6 @@ class AsyncZipFile(AsyncCtxMgrBase):
         f = await asyncify_func(_zipfile)(*args, **kwargs)
         return AsyncZipFile(f)
 
-    @property
     def _unblock_attrs_to_asynchify(self):
         methods = [
             "close",
@@ -59,9 +58,9 @@ class AsyncZipFile(AsyncCtxMgrBase):
 
 
 class AsyncPyZipFile(AsyncZipFile):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + ["writepy"]
+        methods = super()._unblock_attrs_to_asynchify() + ["writepy"]
         return methods
 
 
@@ -69,7 +68,6 @@ class AsyncLZMACompressor(AsyncBase):
     def __init__(self, *args, **kwargs):
         self._original_obj = zipfile_sync.LZMACompressor(*args, **kwargs)
 
-    @property
     def _unblock_attrs_to_asynchify(self):
         methods = ["compress", "flush"]
         return methods
@@ -79,7 +77,6 @@ class AsyncLZMADecompressor(AsyncBase):
     def __init__(self, *args, **kwargs):
         self._original_obj = zipfile_sync.LZMADecompressor(*args, **kwargs)
 
-    @property
     def _unblock_attrs_to_asynchify(self):
         methods = ["decompress"]
         return methods

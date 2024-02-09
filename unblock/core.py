@@ -144,7 +144,6 @@ class _AsyncBase(object):
         if hasattr(original_obj, "__str__"):
             self.__str__ = original_obj.__str__
 
-    @property
     def _unblock_attrs_to_asynchify(self):
         return []
 
@@ -156,7 +155,7 @@ class AsyncBase(_AsyncBase):
                 f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'"
             )
         attr = getattr(self._original_obj, name)
-        if name in self._unblock_attrs_to_asynchify:
+        if name in self._unblock_attrs_to_asynchify():
             return asyncify(attr)
         return attr
 
@@ -168,7 +167,7 @@ class AsyncPPBase(_AsyncBase):
                 f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'"
             )
         attr = getattr(self._original_obj, name)
-        if name in self._unblock_attrs_to_asynchify:
+        if name in self._unblock_attrs_to_asynchify():
             return asyncify_pp(attr)
         return attr
 

@@ -4,14 +4,14 @@ from .core import asyncify_func, AsyncBase
 
 
 class AsyncCompress(AsyncBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
         methods = ["compress", "flush", "copy"]
         return methods
 
 
 class AsyncDecompress(AsyncBase):
-    @property
+    
     def _unblock_attrs_to_asynchify(self):
         methods = ["decompress", "flush", "copy"]
         return methods

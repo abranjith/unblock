@@ -7,29 +7,29 @@ from .io.binary import AsyncBufferedIOBase
 
 
 class AsyncLZMACompressor(AsyncBase):
+    
     def __init__(self, *args, **kwargs):
         self._original_obj = lzma_sync.LZMACompressor(*args, **kwargs)
 
-    @property
     def _unblock_attrs_to_asynchify(self):
         methods = ["compress", "flush"]
         return methods
 
 
 class AsyncLZMADecompressor(AsyncBase):
+    
     def __init__(self, *args, **kwargs):
         self._original_obj = lzma_sync.LZMADecompressor(*args, **kwargs)
 
-    @property
     def _unblock_attrs_to_asynchify(self):
         methods = ["decompress"]
         return methods
 
 
 class AsyncLZMAFile(AsyncBufferedIOBase):
-    @property
+    
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + ["peek"]
+        methods = super()._unblock_attrs_to_asynchify() + ["peek"]
         return methods
 
 

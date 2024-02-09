@@ -2,9 +2,9 @@ from .base import AsyncIOBase
 
 
 class AsyncTextIOBase(AsyncIOBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + [
+        methods = super()._unblock_attrs_to_asynchify() + [
             "detach",
             "read",
             "readline",
@@ -14,9 +14,9 @@ class AsyncTextIOBase(AsyncIOBase):
 
 
 class AsyncTextIOWrapper(AsyncTextIOBase):
-    @property
+
     def _unblock_attrs_to_asynchify(self):
-        methods = super()._unblock_attrs_to_asynchify + ["reconfigure"]
+        methods = super()._unblock_attrs_to_asynchify() + ["reconfigure"]
         return methods
 
 

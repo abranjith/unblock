@@ -8,6 +8,25 @@ Examples
 ---------
 
 
+*   Specify specific methods of your class to asyncify
+
+.. code-block:: python
+
+   import asyncio
+   from unblock.core import AsyncBase
+    
+   #use AsyncPPBase to use Process Pool
+   class MyClass(AsyncBase):
+    
+        def _unblock_attrs_to_asynchify(self):
+            methods = [
+                "sync_method1",
+                "sync_method2",
+                ...
+            ]
+            return methods
+
+
 *   Convert regular iterator to async iterator
 
 .. code-block:: python
@@ -67,26 +86,3 @@ Examples
     async with obj in MyCtxManager():
         async for i in obj:
             print(i)
-
-
-*   I want to specify what methods of my class needs to be asynchronous
-
-.. code-block:: python
-
-   import asyncio
-   from unblock.core import AsyncBase
-    
-   #use AsyncPPBase to use Process Pool
-   class MyClass(AsyncBase):
-    
-        def _unblock_attrs_to_asynchify(self):
-            methods = [
-                "sync_method1",
-                "sync_method2",
-                ...
-            ]
-            return methods
-
-    #caller usage
-    async with obj in MyCtxManager():
-        #do something

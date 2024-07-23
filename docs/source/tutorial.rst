@@ -76,7 +76,7 @@ Process Pool constructs
     my_sync_func = asyncify_pp(my_sync_func)
 
 
-*   Convert all synchronous methods of a class to asynchronous
+*   Convert all synchronous methods of a class to asynchronous that uses ProcessPool
 
 .. code-block:: python
 

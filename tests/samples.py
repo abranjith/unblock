@@ -1,6 +1,7 @@
 import asyncio
 import time
 import sys
+from typing import Awaitable
 sys.path.append("..\\unblock")
 from unblock.core import (
     asyncify_pp,
@@ -10,7 +11,7 @@ from unblock.core import (
 )
 
 @asyncify
-def sync_func(delay):
+def sync_func(delay) -> Awaitable:
     print(f"started sync_func at {time.strftime('%X')}")
     time.sleep(delay)
     print(f"finished sync_func at {time.strftime('%X')}")

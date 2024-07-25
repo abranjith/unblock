@@ -3,20 +3,10 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 THREAD_NAME_PREFIX = "unblock.asyncio"
 
-
-def set_event_loop(loop):
-    Registry.register_event_loop(loop)
-
-
-def set_threadpool_executor(executor):
-    Registry.register_threadpool_executor(executor)
-
-
-def set_processpool_executor(executor):
-    Registry.register_processpool_executor(executor)
-
-
 class Registry:
+    """
+    Responsible for configuring event loop and thread and process pool executors
+    """
     _loop = None
     _thread_executor = None
     _process_executor = None

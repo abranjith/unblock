@@ -1,9 +1,14 @@
 import inspect
 from functools import wraps, partial
+from typing import Callable, Awaitable, Type
 from .common import Registry
 
 
-def asyncify(arg):
+def asyncify(arg : Callable | Awaitable | Type) -> Awaitable | Type:
+    """
+    Converts synchronous function to asynch.
+    Converts synchronous methods of class to asynch.
+    """
     if inspect.iscoroutinefunction(arg):
         return arg
     if inspect.isroutine(arg):
@@ -13,7 +18,11 @@ def asyncify(arg):
     return arg
 
 
-def asyncify_func(func):
+def asyncify_func(func : Callable) -> Awaitable:
+    """
+    Converts synchronous function to asynch.
+    Returns coroutine if event loop is running, else returns Future (asyncio Future)
+    """
     @wraps(func)
     def _fut(fn):
         return _get_future_from_threadpool(fn)
@@ -30,7 +39,10 @@ def asyncify_func(func):
     return _wrapper
 
 
-def asyncify_cls(cls):
+def asyncify_cls(cls : Type) -> Type:
+    """
+    Converts synchronous methods of class to asynch.
+    """
     for attr_name, attr in cls.__dict__.items():
         # this is a generic logic to skip special methods
         if attr_name.startswith("_"):
@@ -39,13 +51,16 @@ def asyncify_cls(cls):
     return cls
 
 
-def _get_future_from_threadpool(fn):
+def _get_future_from_threadpool(fn : Callable) -> Awaitable:
     loop = Registry.get_event_loop()
     executor = Registry.get_threadpool_executor()
     return loop.run_in_executor(executor, fn)
 
 
-def asyncify_pp(arg):
+def asyncify_pp(arg : Callable | Awaitable | Type) -> Awaitable | Type:
+    """
+    Similar to asyncify function above, but uses ProcessPool executor (run as a separate process)
+    """
     if inspect.iscoroutinefunction(arg):
         return arg
     if inspect.isroutine(arg):
@@ -55,7 +70,10 @@ def asyncify_pp(arg):
     return arg
 
 
-def asyncify_func_pp(func):
+def asyncify_func_pp(func : Callable) -> Awaitable:
+    """
+    Similar to asyncify_func function above, but uses ProcessPool executor (run as a separate process)
+    """
     @wraps(func)
     def _fut(fn):
         return _get_future_from_processpool(fn)
@@ -72,7 +90,10 @@ def asyncify_func_pp(func):
     return _wrapper
 
 
-def asyncify_cls_pp(cls):
+def asyncify_cls_pp(cls : Type) -> Type:
+    """
+    Similar to asyncify_cls function above, but uses ProcessPool executor (run as a separate process)
+    """
     for attr_name, attr in cls.__dict__.items():
         # this is a generic logic to skip special methods
         if attr_name.startswith("_"):
@@ -81,11 +102,21 @@ def asyncify_cls_pp(cls):
     return cls
 
 
-def _get_future_from_processpool(fn):
+def _get_future_from_processpool(fn : Callable) -> Awaitable:
     loop = Registry.get_event_loop()
     executor = Registry.get_processpool_executor()
     return loop.run_in_executor(executor, fn)
 
+
+def _has_callable_close(obj):
+    if hasattr(obj, "close"):
+        return any(inspect.signature(obj.close).parameters)
+    return False
+
+def _has_callable_aclose(obj):
+    if hasattr(obj, "aclose"):
+        return any(inspect.signature(obj.aclose).parameters)
+    return False
 
 class async_property(property):
     def __init__(self, _fget, name=None, doc=None):
@@ -134,7 +165,7 @@ class async_cached_property(property):
         return value
 
 
-class _AsyncBase(object):
+class _AsyncBase:
     def __init__(self, original_obj):
         self._original_obj = original_obj
         if hasattr(original_obj, "__doc__"):
@@ -173,28 +204,36 @@ class AsyncPPBase(_AsyncBase):
 
 
 class AsyncIterBase(AsyncBase):
+
     def __aiter__(self):
-        self._itrtr = iter(self._original_obj)
+        self._original = iter(self._original_obj)
         return self
 
     # see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
     async def __anext__(self):
         def _next():
             try:
-                return next(self._itrtr)
-            except StopIteration:
-                raise StopAsyncIteration
+                return next(self._original)
+            except StopIteration as ex:
+                raise StopAsyncIteration from ex
 
         return await asyncify_func(_next)()
 
 
 class AsyncCtxMgrBase(AsyncBase):
+
+    call_close_on_exit = True
+
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
-        if hasattr(self, "close"):
-            await self.close()
+        if not self.call_close_on_exit:
+            return
+        if _has_callable_close(self):
+            await asyncify_func(self.close)()
+        if _has_callable_aclose(self):
+            await asyncify_func(self.aclose)()
 
 
 class AsyncCtxMgrIterBase(AsyncIterBase, AsyncCtxMgrBase):
@@ -202,28 +241,36 @@ class AsyncCtxMgrIterBase(AsyncIterBase, AsyncCtxMgrBase):
 
 
 class AsyncPPIterBase(AsyncPPBase):
+
     def __aiter__(self):
-        self._itrtr = iter(self._original_obj)
+        self._original = iter(self._original_obj)
         return self
 
     # see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
     async def __anext__(self):
         def _next():
             try:
-                return next(self._itrtr)
-            except StopIteration:
-                raise StopAsyncIteration
+                return next(self._original)
+            except StopIteration as ex:
+                raise StopAsyncIteration from ex
 
         return await asyncify_func_pp(_next)()
 
 
 class AsyncPPCtxMgrBase(AsyncPPBase):
+
+    call_close_on_exit = True
+
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
-        if hasattr(self, "close"):
-            await self.close()
+        if not self.call_close_on_exit:
+            return
+        if _has_callable_close(self):
+            await asyncify_func(self.close)()
+        if _has_callable_aclose(self):
+            await asyncify_func(self.aclose)()
 
 
 class AsyncPPCtxMgrIterBase(AsyncPPIterBase, AsyncPPCtxMgrBase):

@@ -9,12 +9,12 @@ Welcome to unblock's documentation!
 
 **About the project**
 *********************
-**unblock** comes with utilities that can be used to convert synchronous functions to asynch for use in event loop across your maps. Here is a basic example,
+**unblock** comes with utilities that can be used to convert synchronous functions to asynch for use in event loop. Here is a basic example,
 
 .. code-block:: python
 
    import asyncio
-   from unblock.core import asyncify
+   from unblock import asyncify
     
    @asyncify
    def my_sync_func():

@@ -13,7 +13,7 @@ Examples
 .. code-block:: python
 
    import asyncio
-   from unblock.core import AsyncBase
+   from unblock import AsyncBase
     
    #use AsyncPPBase to use Process Pool
    class MyClass(AsyncBase):
@@ -32,7 +32,7 @@ Examples
 .. code-block:: python
 
    import asyncio
-   from unblock.core import AsyncIterBase
+   from unblock import AsyncIterBase
     
    class MyIterator(AsyncIterBase):
     
@@ -52,12 +52,13 @@ Examples
 .. code-block:: python
 
    import asyncio
-   from unblock.core import AsyncCtxMgrBase
+   from unblock import AsyncCtxMgrBase
     
    class MyCtxManager(AsyncCtxMgrBase):
     
         def close(self):
             #cleanup will be called by ctx manager
+            #set class var call_close_on_exit to False to not call close method as part of cleanup
 
     #caller usage
     async with obj in MyCtxManager():
@@ -69,7 +70,7 @@ Examples
 .. code-block:: python
 
    import asyncio
-   from unblock.core import AsyncCtxMgrIterBase
+   from unblock import AsyncCtxMgrIterBase
     
    class MyIterator(AsyncCtxMgrIterBase):
     
@@ -81,6 +82,7 @@ Examples
 
         def close(self):
             #cleanup will be called by ctx manager
+            #set class var call_close_on_exit to False to not call close method as part of cleanup
 
     #caller usage
     async with obj in MyCtxManager():

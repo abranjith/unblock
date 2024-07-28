@@ -1,9 +1,11 @@
+# pylint: disable=E1101
+
 import asyncio
 import time
 import sys
 from typing import Awaitable
 sys.path.append("..\\unblock")
-from unblock.core import (
+from unblock import (
     asyncify_pp,
     asyncify,
     async_cached_property,
@@ -110,6 +112,6 @@ async def test_SampleAsyncProperty():
 
 if __name__ == "__main__":
     #asyncio.run(run_sync_func(1))  # not cancelled
-    #asyncio.run(run_sync_func(3))   #cancelled
+    asyncio.run(run_sync_func(3))   #cancelled
     #check_sync_func(1)  #creates coroutine
-    asyncio.run(test_SampleAsyncProperty())
+    #asyncio.run(test_SampleAsyncProperty())

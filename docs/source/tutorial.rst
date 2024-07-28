@@ -11,7 +11,7 @@ Basic usage
 .. code-block:: python
 
    import asyncio
-   from unblock.core import asyncify
+   from unblock import asyncify
     
    @asyncify
    def my_sync_func():
@@ -23,7 +23,7 @@ Basic usage
 .. code-block:: python
 
    import asyncio
-   from unblock.core import asyncify, async_property, async_cached_property
+   from unblock import asyncify, async_property, async_cached_property
 
    class MyClass:
 
@@ -40,12 +40,12 @@ Basic usage
             #value returned is cached
 
 
-*   Convert all synchronous methods of a class to asynchronous
+*   Convert all synchronous methods of a class to asynchronous. Note that it excludes any methods starting with an underscore (e.g. _myfunc)
 
 .. code-block:: python
 
    import asyncio
-   from unblock.core import asyncify
+   from unblock import asyncify
 
     @asyncify
     class MyClass:
@@ -68,7 +68,7 @@ Process Pool constructs
 .. code-block:: python
 
    import asyncio
-   from unblock.core import asyncify_pp
+   from unblock import asyncify_pp
     
    def my_sync_func():
       #do something
@@ -81,7 +81,7 @@ Process Pool constructs
 .. code-block:: python
 
    import asyncio
-   from unblock.core import asyncify_pp
+   from unblock import asyncify_pp
     
     class MyClass:
 
@@ -95,3 +95,7 @@ Process Pool constructs
             #since this is already async, there is no impact
     
     MyClass = asyncify_pp(MyClass)
+
+
+.. tip::
+    Please refer samples.py under tests for some more examples.

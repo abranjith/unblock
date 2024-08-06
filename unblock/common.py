@@ -65,3 +65,8 @@ class Registry:
     @staticmethod
     def _get_default_event_loop():
         return asyncio.get_running_loop()
+
+
+
+class UnblockException(Exception):
+    pass

@@ -8,16 +8,30 @@ Examples
 ---------
 
 
-*   Specify specific methods of your class to asyncify
+Asyncify methods of existing class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have an existing class where you want to convert existing methods to asynchronous without modifying the original class, below is a way to do it. Create a wrapper class and provide methods to asyncify in the _unblock_attrs_to_asynchify override
 
 .. code-block:: python
 
    import asyncio
    from unblock import AsyncBase
     
+   class MyClass:
+
+        def sync_method1(self):
+            #do something
+
+        def sync_method2(self, arg1, kwarg1 = "val1"):
+            #do something
+
    #use AsyncPPBase to use Process Pool
-   class MyClass(AsyncBase):
-    
+    class MyClassAsync(AsyncBase):
+
+        def __init__(self):
+            super().__init__(MyClass())
+
         def _unblock_attrs_to_asynchify(self):
             methods = [
                 "sync_method1",
@@ -25,6 +39,11 @@ Examples
                 ...
             ]
             return methods
+
+    #caller usage
+    obj = MyClassAsync():
+    await obj.sync_method1()
+    await obj.sync_method2(100)
 
 
 *   Convert regular iterator to async iterator
@@ -34,7 +53,10 @@ Examples
    import asyncio
    from unblock import AsyncIterBase
     
-   class MyIterator(AsyncIterBase):
+   class MyIteratorAsync(AsyncIterBase):
+
+        def __init__(self):
+            super().__init__(MyClass())
     
         def __iter__(self):
             return self
@@ -54,7 +76,10 @@ Examples
    import asyncio
    from unblock import AsyncCtxMgrBase
     
-   class MyCtxManager(AsyncCtxMgrBase):
+   class MyCtxManagerAsync(AsyncCtxMgrBase):
+
+        def __init__(self):
+            super().__init__(MyClass())
     
         def close(self):
             #cleanup will be called by ctx manager

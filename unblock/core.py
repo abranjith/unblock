@@ -4,8 +4,9 @@ __all__ = ["asyncify", "asyncify_func", "asyncify_cls", "asyncify_pp", "asyncify
 
 import inspect
 from functools import wraps, partial
+import contextlib
 from typing import Callable, Awaitable, Type
-from .common import Registry
+from .common import Registry, UnblockException
 
 
 def asyncify(arg : Callable | Awaitable | Type) -> Awaitable | Type:
@@ -148,6 +149,7 @@ class async_cached_property(property):
 
 
 class _AsyncBase:
+
     def __init__(self, original_obj):
         self._original_obj = original_obj
         if hasattr(original_obj, "__doc__"):
@@ -157,29 +159,35 @@ class _AsyncBase:
         if hasattr(original_obj, "__str__"):
             self.__str__ = original_obj.__str__
 
+    def _get_attr(self, name):
+        if not hasattr(self._original_obj, name):
+            raise AttributeError(
+                f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'"
+            )
+        class_attr = getattr(self._original_obj.__class__, name)
+        if isinstance(class_attr, property) and name in self._unblock_attrs_to_asynchify():
+            raise UnblockException(
+                f"{name} - Cannot use properties in _unblock_attrs_to_asynchify. Instead decorate with async_property"
+            )
+        return getattr(self._original_obj, name)
+
     def _unblock_attrs_to_asynchify(self):
         return []
 
 
 class AsyncBase(_AsyncBase):
+
     def __getattr__(self, name):
-        if not hasattr(self._original_obj, name):
-            raise AttributeError(
-                f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'"
-            )
-        attr = getattr(self._original_obj, name)
+        attr = self._get_attr(name)
         if name in self._unblock_attrs_to_asynchify():
             return asyncify(attr)
         return attr
 
 
 class AsyncPPBase(_AsyncBase):
+
     def __getattr__(self, name):
-        if not hasattr(self._original_obj, name):
-            raise AttributeError(
-                f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'"
-            )
-        attr = getattr(self._original_obj, name)
+        attr = self._get_attr(name)
         if name in self._unblock_attrs_to_asynchify():
             return asyncify_pp(attr)
         return attr
@@ -188,14 +196,14 @@ class AsyncPPBase(_AsyncBase):
 class AsyncIterBase(AsyncBase):
 
     def __aiter__(self):
-        self._original = iter(self._original_obj)
+        self._original_iterobj = iter(self._original_obj)
         return self
 
     # see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
     async def __anext__(self):
         def _next():
             try:
-                return next(self._original)
+                return next(self._original_iterobj)
             except StopIteration as ex:
                 raise StopAsyncIteration from ex
 
@@ -207,9 +215,17 @@ class AsyncCtxMgrBase(AsyncBase):
     call_close_on_exit = True
 
     async def __aenter__(self):
+        self._stack = None
+        if hasattr(self._original_obj, "__enter__"):
+            with contextlib.ExitStack() as stack:
+                stack.enter_context(self._original_obj)
+                self._stack = stack.pop_all()
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
+        if self._stack is not None:
+            self._stack.__exit__(self._original_obj, exc_type, exc_value, traceback)
+            return
         if not self.call_close_on_exit:
             return
         if _has_callable_close(self):
@@ -225,14 +241,14 @@ class AsyncCtxMgrIterBase(AsyncIterBase, AsyncCtxMgrBase):
 class AsyncPPIterBase(AsyncPPBase):
 
     def __aiter__(self):
-        self._original = iter(self._original_obj)
+        self._original_iterobj = iter(self._original_obj)
         return self
 
     # see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
     async def __anext__(self):
         def _next():
             try:
-                return next(self._original)
+                return next(self._original_iterobj)
             except StopIteration as ex:
                 raise StopAsyncIteration from ex
 
@@ -244,9 +260,17 @@ class AsyncPPCtxMgrBase(AsyncPPBase):
     call_close_on_exit = True
 
     async def __aenter__(self):
+        self._stack = None
+        if hasattr(self._original_obj, "__enter__"):
+            with contextlib.ExitStack() as stack:
+                stack.enter_context(self._original_obj)
+                self._stack = stack.pop_all()
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
+        if self._stack is not None:
+            self._stack.__exit__(self._original_obj, exc_type, exc_value, traceback)
+            return
         if not self.call_close_on_exit:
             return
         if _has_callable_close(self):

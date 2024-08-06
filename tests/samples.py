@@ -9,7 +9,8 @@ from unblock import (
     asyncify_pp,
     asyncify,
     async_cached_property,
-    async_property
+    async_property,
+    AsyncBase
 )
 
 @asyncify
@@ -50,35 +51,47 @@ asyncify_test = asyncify_pp(_asyncify_test)
 
 
 @asyncify
-class SampelClsAsyncify:
+class SampleClsAsyncify:
+        
+    @staticmethod
+    def static_method():
+        print("static_method done")
+
     def __init__(self, a):
         self.a = a
 
-    @async_property
+    @property
     def prop(self):
         time.sleep(2)
         print("prop done")
         return self.a
+    
+    @async_property
+    def aprop(self):
+        time.sleep(2)
+        print("aprop done")
+        return self.a
 
-    def _private(self):
-        print("_private done")
+    def _private(self, caller = ""):
+        print(f"_private done. caller - {caller}")
 
     async def _asleep(self):
         await asyncio.sleep(2)
         print("_asleep done")
 
     async def async_fun(self):
-        self._private()
+        self._private("async_fun")
         await asyncio.sleep(2)
         print("async_fun done")
 
     def sync_fun(self):
-        self._private()
+        self._private("sync_fun")
         time.sleep(2)
         print("sync_fun done")
 
 
 class SampleAsyncProperty:
+
     def __init__(self, a):
         self.a = a
 
@@ -93,14 +106,59 @@ class SampleAsyncProperty:
         time.sleep(2)
         print("cached prop done")
         return self.a
+    
+class MyClass:
 
-async def test_SampelClsAsyncify():
-    t = SampelClsAsyncify(100)
+    @staticmethod
+    def static_method():
+        print("static_method done")
+
+    def __init__(self, a):
+        self.a = a
+
+    @property
+    def prop(self):
+        time.sleep(2)
+        print("prop done")
+        return self.a
+    
+    def _private(self, caller = ""):
+        print(f"_private done. caller - {caller}")
+
+    def sync_fun(self, name):
+        self._private(f"sync_fun {name}")
+        time.sleep(2)
+        print(f"sync_fun {name} done")
+
+class SampleUnblock(AsyncBase):
+
+    def __init__(self, a):
+        super().__init__(MyClass(a))
+
+    def _unblock_attrs_to_asynchify(self):
+        methods = [
+            #"prop",    
+            "sync_fun"
+        ]
+        return methods
+    
+async def test_Unblock():
+    o = SampleUnblock(100)
+    t = o.sync_fun("test")
+    time.sleep(3)
+    print(o.prop)
+    await t
+
+async def test_SampleClsAsyncify():
+    await SampleClsAsyncify.static_method()
+    t = SampleClsAsyncify(100)
     r = t._asleep()
     await t.async_fun()
     await t.sync_fun()
     await r
-
+    print(t.prop)
+    print(await t.aprop)
+    
 async def test_SampleAsyncProperty():
     t = SampleAsyncProperty(100)
     print(await t.prop)
@@ -112,6 +170,8 @@ async def test_SampleAsyncProperty():
 
 if __name__ == "__main__":
     #asyncio.run(run_sync_func(1))  # not cancelled
-    asyncio.run(run_sync_func(3))   #cancelled
+    #asyncio.run(run_sync_func(3))   #cancelled
     #check_sync_func(1)  #creates coroutine
     #asyncio.run(test_SampleAsyncProperty())
+    #asyncio.run(test_SampleClsAsyncify())   #asyncify
+    asyncio.run(test_Unblock())   #asyncify

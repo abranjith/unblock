@@ -10,7 +10,8 @@ from unblock import (
     asyncify,
     async_cached_property,
     async_property,
-    AsyncBase
+    AsyncBase,
+    AsyncCtxMgrBase
 )
 
 @asyncify
@@ -130,7 +131,7 @@ class MyClass:
         time.sleep(2)
         print(f"sync_fun {name} done")
 
-class SampleUnblock(AsyncBase):
+class MyClassAsync(AsyncBase):
 
     def __init__(self, a):
         super().__init__(MyClass(a))
@@ -141,13 +142,51 @@ class SampleUnblock(AsyncBase):
             "sync_fun"
         ]
         return methods
+
+class MyCtxMgr:
+
+    def __init__(self, a):
+        self.a = a
+
+    def __enter__(self):
+        print("Starting MyCtxMgr")
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+        print("Exiting MyCtxMgr")
+
+    def close(self):
+        print("Closing MyCtxMgr")
+
+    def sync_fun(self, name):
+        time.sleep(1)
+        print(f"sync_fun {name} done")
+
+class MyCtxMgrAsync(AsyncCtxMgrBase):
+
+    def __init__(self, a):
+        super().__init__(MyCtxMgr(a))
+
+    def aclose(self):
+        print("Closing MyCtxMgrAsync")
+
+    def _unblock_attrs_to_asynchify(self):
+        methods = [
+            "sync_fun"
+        ]
+        return methods
     
-async def test_Unblock():
-    o = SampleUnblock(100)
+async def test_AsyncClass():
+    o = MyClassAsync(100)
     t = o.sync_fun("test")
     time.sleep(3)
     print(o.prop)
     await t
+
+async def test_AsyncCtxMgr():
+    async with MyCtxMgrAsync(100) as obj:
+        await obj.sync_fun("test")
 
 async def test_SampleClsAsyncify():
     await SampleClsAsyncify.static_method()
@@ -174,4 +213,5 @@ if __name__ == "__main__":
     #check_sync_func(1)  #creates coroutine
     #asyncio.run(test_SampleAsyncProperty())
     #asyncio.run(test_SampleClsAsyncify())   #asyncify
-    asyncio.run(test_Unblock())   #asyncify
+    #asyncio.run(test_AsyncClass())   #asyncify class
+    asyncio.run(test_AsyncCtxMgr())   #asyncify ctx mgr

@@ -224,7 +224,7 @@ class AsyncCtxMgrBase(AsyncBase):
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         if self._stack is not None:
-            self._stack.__exit__(self._original_obj, exc_type, exc_value, traceback)
+            self._stack.__exit__(exc_type, exc_value, traceback)
             return
         if not self.call_close_on_exit:
             return
@@ -269,7 +269,7 @@ class AsyncPPCtxMgrBase(AsyncPPBase):
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         if self._stack is not None:
-            self._stack.__exit__(self._original_obj, exc_type, exc_value, traceback)
+            self._stack.__exit__(exc_type, exc_value, traceback)
             return
         if not self.call_close_on_exit:
             return

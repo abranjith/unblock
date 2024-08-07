@@ -225,13 +225,15 @@ class AsyncCtxMgrBase(AsyncBase):
     async def __aexit__(self, exc_type, exc_value, traceback):
         if self._stack is not None:
             self._stack.__exit__(exc_type, exc_value, traceback)
+            if self.call_close_on_exit and _has_callable_aclose(self):
+                await asyncify(self.aclose)()
             return
         if not self.call_close_on_exit:
             return
         if _has_callable_close(self):
-            await asyncify_func(self.close)()
+            await asyncify(self.close)()
         if _has_callable_aclose(self):
-            await asyncify_func(self.aclose)()
+            await asyncify(self.aclose)()
 
 
 class AsyncCtxMgrIterBase(AsyncIterBase, AsyncCtxMgrBase):
@@ -251,8 +253,8 @@ class AsyncPPIterBase(AsyncPPBase):
                 return next(self._original_iterobj)
             except StopIteration as ex:
                 raise StopAsyncIteration from ex
-
-        return await asyncify_func_pp(_next)()
+        #it seems strange to use process pool exector for iterator, so going with thread pool executor
+        return await asyncify_func(_next)()
 
 
 class AsyncPPCtxMgrBase(AsyncPPBase):
@@ -274,9 +276,9 @@ class AsyncPPCtxMgrBase(AsyncPPBase):
         if not self.call_close_on_exit:
             return
         if _has_callable_close(self):
-            await asyncify_func(self.close)()
+            await asyncify(self.close)()
         if _has_callable_aclose(self):
-            await asyncify_func(self.aclose)()
+            await asyncify(self.aclose)()
 
 
 class AsyncPPCtxMgrIterBase(AsyncPPIterBase, AsyncPPCtxMgrBase):
@@ -297,10 +299,10 @@ def _get_future_from_processpool(fn : Callable) -> Awaitable:
 
 def _has_callable_close(obj):
     if hasattr(obj, "close"):
-        return any(inspect.signature(obj.close).parameters)
+        return inspect.isroutine(obj.close) and (not any(inspect.signature(obj.close).parameters))
     return False
 
 def _has_callable_aclose(obj):
     if hasattr(obj, "aclose"):
-        return any(inspect.signature(obj.aclose).parameters)
+        return inspect.isroutine(obj.aclose) and (not any(inspect.signature(obj.aclose).parameters))
     return False

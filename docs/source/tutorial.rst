@@ -3,7 +3,7 @@ Tutorial
 ========
 
 Basic usage
-------------
+^^^^^^^^^^^^
 
 
 *   Convert synchronous function to asynchronous
@@ -61,7 +61,7 @@ Basic usage
 
 
 Process Pool constructs
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 *   Convert synchronous function to asynchronous that uses ProcessPool
 
@@ -97,5 +97,22 @@ Process Pool constructs
     MyClass = asyncify_pp(MyClass)
 
 
-.. tip::
+.. note::
     Please refer samples.py under tests for some more examples.
+
+
+
+Switch Async event loop
+^^^^^^^^^^^^^^^^^^^^^^^^
+**unblock** by default uses asyncio for event loop. But that can be changed to event loop of your choice as shown in the below example. 
+Similarly default ThreadPoolExecutor and ProcessPoolExecutor can be changed as well.
+
+
+.. code-block:: python
+
+   from unblock import set_event_loop, set_threadpool_executor, set_processpool_executor
+    
+    #caller usage
+    set_event_loop(event_loop)  #set a different event loop
+    set_threadpool_executor(threadpool_executor)    #set a different ThreadPoolExecutor (has to be of type ThreadPoolExecutor)
+    set_processpool_executor(processpool_executor)  #set a different ProcessPoolExecutor (has to be of type ProcessPoolExecutor)

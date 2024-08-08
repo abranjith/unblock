@@ -14,7 +14,6 @@ If you have an existing class where you want to convert existing methods to asyn
 
 .. code-block:: python
 
-   import asyncio
    from unblock import AsyncBase
     
    class MyClass:
@@ -52,7 +51,6 @@ Wrapper class can be created to use existing synchronous iterator as asynchronou
 
 .. code-block:: python
 
-   import asyncio
    from unblock import AsyncIterBase
 
    class MyIterator:
@@ -88,7 +86,6 @@ Wrapper class can be created to use existing synchronous context manager as asyn
 
 .. code-block:: python
 
-   import asyncio
    from unblock import AsyncCtxMgrBase
 
    class MyCtxMgr:
@@ -120,7 +117,6 @@ This essentially combines functionality of Asyncify Iterator and Asyncify Contex
 
 .. code-block:: python
 
-   import asyncio
    from unblock import AsyncCtxMgrIterBase
     
    class MyIteratorCtxMgr:
@@ -146,3 +142,4 @@ This essentially combines functionality of Asyncify Iterator and Asyncify Contex
     async with obj in MyIteratorCtxMgrAsync():
         async for i in obj:
             print(i)
+

@@ -35,7 +35,7 @@ Welcome to unblock's documentation!
    :caption: Contents:
 
    features
-   tutorial
+   basicusage
    api
 
 

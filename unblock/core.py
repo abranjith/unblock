@@ -272,6 +272,8 @@ class AsyncPPCtxMgrBase(AsyncPPBase):
     async def __aexit__(self, exc_type, exc_value, traceback):
         if self._stack is not None:
             self._stack.__exit__(exc_type, exc_value, traceback)
+            if self.call_close_on_exit and _has_callable_aclose(self):
+                await asyncify(self.aclose)()
             return
         if not self.call_close_on_exit:
             return

@@ -278,12 +278,12 @@ async def test_SampleAsyncProperty():
 
 if __name__ == "__main__":
     #asyncio.run(run_sync_func(1))  # not cancelled
-    #asyncio.run(run_sync_func(3))   #cancelled
-    #check_sync_func(1)  #creates coroutine
-    #asyncio.run(test_SampleAsyncProperty())
-    #asyncio.run(test_SampleClsAsyncify())   #asyncify
-    #asyncio.run(test_AsyncClass())   #asyncify class
-    #asyncio.run(test_AsyncPPClass())   #asyncify class PP
-    #asyncio.run(test_AsyncItr())   #asyncify iterator
-    asyncio.run(test_AsyncCtxMgr())   #asyncify ctx mgr
-    #asyncio.run(test_AsyncCtxMgr2())   #asyncify ctx mgr2
+    #asyncio.run(run_sync_func(3))   # cancelled
+    #check_sync_func(1)  # creates coroutine
+    #asyncio.run(test_SampleAsyncProperty())    # asyncify properties
+    #asyncio.run(test_SampleClsAsyncify())   # asyncify
+    #asyncio.run(test_AsyncClass())   # asyncify class
+    #asyncio.run(test_AsyncPPClass())   # asyncify class PP
+    #asyncio.run(test_AsyncItr())   # asyncify iterator
+    asyncio.run(test_AsyncCtxMgr())   # asyncify ctx mgr
+    #asyncio.run(test_AsyncCtxMgr2())   # asyncify ctx mgr2

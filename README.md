@@ -6,14 +6,14 @@ Here is a quick example,
 
 ```python
 import asyncio
-   from unblock import asyncify
-    
-   @asyncify
-   def my_sync_func():
-      #do something
+from unblock import asyncify
    
-   if __name__ == "__main__":
-      asyncio.run(my_sync_func())
+@asyncify
+def my_sync_func():
+   #do something
+
+if __name__ == "__main__":
+   asyncio.run(my_sync_func())
 ```
 
 ## Release Notes:

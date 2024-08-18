@@ -1,5 +1,6 @@
 # unblock
 
+unblock comes with utilities that can be used to convert synchronous functions to async for use in event loop.
 For documentation, refer [here](https://unblock.readthedocs.io/en/latest/)
 
 Here is a quick example,

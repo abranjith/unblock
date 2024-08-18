@@ -1,7 +1,7 @@
 [project]
 name = "unblock"
 version = "0.1.0"
-description = "Add your description here"
+description = "unblock comes with utilities that can be used to convert synchronous functions to async for use in event loop"
 dependencies = []
 readme = "README.md"
 requires-python = ">= 3.7"

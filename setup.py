@@ -10,18 +10,18 @@ import os
 from setuptools import setup
 
 # Package meta-data.
-NAME = 'unblock'
-DESCRIPTION = 'Simple solution to convert synchronous calls to asynchronous for use in asynchronous programming'
-URL = 'https://github.com/abranjith/unblock'
-EMAIL = 'abranjith@gmail.com'
-AUTHOR = 'ranjith'
-VERSION = '0.0.1'
-README_CONTENT_TYPE = 'text/markdown'
+NAME = "unblock"
+DESCRIPTION = "Simple solution to convert synchronous calls to asynchronous for use in asynchronous programming"
+URL = "https://github.com/abranjith/unblock"
+EMAIL = "abranjith@gmail.com"
+AUTHOR = "ranjith"
+VERSION = "0.0.1"
+README_CONTENT_TYPE = "text/markdown"
 
 # What packages are required for this module to be executed?
 REQUIRED = []
 
-#here = os.path.abspath(os.path.dirname(__file__))
+# here = os.path.abspath(os.path.dirname(__file__))
 
 # Import the README and use it as the long-description.
 with open("README.md", "r") as fh:
@@ -37,17 +37,17 @@ setup(
     author=AUTHOR,
     author_email=EMAIL,
     url=URL,
-    python_requires='>=3.7.0',
+    python_requires=">=3.7.0",
     # If your package is a single module, use this instead of 'packages':
-    packages=['unblock', 'unblock.io'],
+    packages=["unblock", "unblock.io"],
     install_requires=REQUIRED,
     include_package_data=True,
-    license='Apache-2.0',
+    license="Apache-2.0",
     classifiers=[
-        'License :: OSI Approved :: Apache-2.0 License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy'
-    ]
+        "License :: OSI Approved :: Apache-2.0 License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+    ],
 )

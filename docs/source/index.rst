@@ -9,7 +9,7 @@ Welcome to unblock's documentation!
 
 **About the project**
 *********************
-**unblock** comes with utilities that can be used to convert synchronous functions to asynch for use in event loop. Here is a basic example,
+**unblock** comes with utilities that can be used to convert synchronous functions to async for use in event loop. Here is a basic example,
 
 .. code-block:: python
 

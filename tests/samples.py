@@ -4,6 +4,8 @@ import asyncio
 import time
 import sys
 from typing import Awaitable
+from abc import abstractmethod
+
 sys.path.append("..\\unblock")
 from unblock import (
     asyncify_pp,
@@ -13,8 +15,9 @@ from unblock import (
     AsyncPPBase,
     AsyncBase,
     AsyncCtxMgrBase,
-    AsyncIterBase
+    AsyncIterBase,
 )
+
 
 @asyncify
 def sync_func(delay) -> Awaitable:
@@ -22,6 +25,7 @@ def sync_func(delay) -> Awaitable:
     time.sleep(delay)
     print(f"finished sync_func at {time.strftime('%X')}")
     return "tadaaa!"
+
 
 async def run_sync_func(delay):
     print(f"starting sync_func at {time.strftime('%X')}")
@@ -39,26 +43,36 @@ async def run_sync_func(delay):
         print("cant cancel sync_func - ", f.cancelled())
     print(f"ending sync_func at {time.strftime('%X')}")
 
+
 def check_sync_func(delay):
     print(f"starting sync_func at {time.strftime('%X')}")
     f = sync_func(delay)
     print(f"sync_func {f}", type(f))
     print(f"ending sync_func at {time.strftime('%X')}")
 
+
 def _asyncify_test():
     time.sleep(2)
     print("This is a synch func")
 
-#this uses process pool ..can't use as decorator due to pickling issue
+
+# this uses process pool ..can't use as decorator due to pickling issue
 asyncify_test = asyncify_pp(_asyncify_test)
 
 
 @asyncify
 class SampleClsAsyncify:
-        
     @staticmethod
     def static_method():
         print("static_method done")
+
+    @classmethod
+    def cls_method(cls):
+        print(f"{cls} cls_method done")
+
+    @abstractmethod
+    def abs_method(self):
+        print("abs_method done")
 
     def __init__(self, a):
         self.a = a
@@ -68,14 +82,14 @@ class SampleClsAsyncify:
         time.sleep(2)
         print("prop done")
         return self.a
-    
+
     @async_property
     def aprop(self):
         time.sleep(2)
         print("aprop done")
         return self.a
 
-    def _private(self, caller = ""):
+    def _private(self, caller=""):
         print(f"_private done. caller - {caller}")
 
     async def _asleep(self):
@@ -94,7 +108,6 @@ class SampleClsAsyncify:
 
 
 class SampleAsyncProperty:
-
     def __init__(self, a):
         self.a = a
 
@@ -109,9 +122,9 @@ class SampleAsyncProperty:
         time.sleep(2)
         print("cached prop done")
         return self.a
-    
-class MyClass:
 
+
+class MyClass:
     @staticmethod
     def static_method():
         print("static_method done")
@@ -124,8 +137,8 @@ class MyClass:
         time.sleep(2)
         print("prop done")
         return self.a
-    
-    def _private(self, caller = ""):
+
+    def _private(self, caller=""):
         print(f"_private done. caller - {caller}")
 
     def sync_fun(self, name):
@@ -138,32 +151,29 @@ class MyClass:
         time.sleep(1)
         print(f"sync_fun2 {name} done")
 
-class MyClassAsync(AsyncBase):
 
+class MyClassAsync(AsyncBase):
     def __init__(self, a):
         super().__init__(MyClass(a))
 
     def _unblock_attrs_to_asynchify(self):
         methods = [
-            #"prop",    
+            # "prop",
             "sync_fun"
         ]
         return methods
-    
-class MyClassAsyncPP(AsyncPPBase):
 
+
+class MyClassAsyncPP(AsyncPPBase):
     def __init__(self, a):
         super().__init__(MyClass(a))
 
     def _unblock_attrs_to_asynchify(self):
-        methods = [
-            "sync_fun",
-            "sync_fun2"
-        ]
+        methods = ["sync_fun", "sync_fun2"]
         return methods
 
-class MyCtxMgr:
 
+class MyCtxMgr:
     def __init__(self, a):
         self.a = a
 
@@ -184,7 +194,6 @@ class MyCtxMgr:
 
 
 class MyCtxMgrAsync(AsyncCtxMgrBase):
-
     def __init__(self, a):
         super().__init__(MyCtxMgr(a))
 
@@ -192,13 +201,11 @@ class MyCtxMgrAsync(AsyncCtxMgrBase):
         print("Closing MyCtxMgrAsync")
 
     def _unblock_attrs_to_asynchify(self):
-        methods = [
-            "sync_fun"
-        ]
+        methods = ["sync_fun"]
         return methods
 
-class MyCtxMgr2:
 
+class MyCtxMgr2:
     def close(self):
         print("Closing MyCtxMgr2")
 
@@ -206,8 +213,8 @@ class MyCtxMgr2:
         time.sleep(1)
         print(f"sync_fun {name} done")
 
-class MyCtxMgrAsync2(AsyncCtxMgrBase):
 
+class MyCtxMgrAsync2(AsyncCtxMgrBase):
     def __init__(self):
         super().__init__(MyCtxMgr2())
 
@@ -217,7 +224,6 @@ class MyCtxMgrAsync2(AsyncCtxMgrBase):
 
 
 class MyItr:
-
     def __iter__(self):
         self.n = 0
         return self
@@ -227,11 +233,12 @@ class MyItr:
         if self.n > 10:
             raise StopIteration("Can't exceed 10!")
         return self.n
-    
-class MyItrAsync(AsyncIterBase):
 
+
+class MyItrAsync(AsyncIterBase):
     def __init__(self):
         super().__init__(MyItr())
+
 
 async def test_AsyncClass():
     o = MyClassAsync(100)
@@ -240,22 +247,27 @@ async def test_AsyncClass():
     print(o.prop)
     await t
 
+
 async def test_AsyncPPClass():
     o = MyClassAsyncPP(100)
     await o.sync_fun("test")
     await o.sync_fun2("test")
 
+
 async def test_AsyncCtxMgr():
     async with MyCtxMgrAsync(100) as obj:
         await obj.sync_fun("test")
+
 
 async def test_AsyncCtxMgr2():
     async with MyCtxMgrAsync2() as obj:
         obj.sync_fun("test")
 
+
 async def test_AsyncItr():
     async for i in MyItrAsync():
         print(i)
+
 
 async def test_SampleClsAsyncify():
     await SampleClsAsyncify.static_method()
@@ -266,7 +278,10 @@ async def test_SampleClsAsyncify():
     await r
     print(t.prop)
     print(await t.aprop)
-    
+    await t.cls_method()
+    await t.abs_method()
+
+
 async def test_SampleAsyncProperty():
     t = SampleAsyncProperty(100)
     print(await t.prop)
@@ -277,13 +292,13 @@ async def test_SampleAsyncProperty():
 
 
 if __name__ == "__main__":
-    #asyncio.run(run_sync_func(1))  # not cancelled
-    #asyncio.run(run_sync_func(3))   # cancelled
-    #check_sync_func(1)  # creates coroutine
-    #asyncio.run(test_SampleAsyncProperty())    # asyncify properties
-    #asyncio.run(test_SampleClsAsyncify())   # asyncify
-    #asyncio.run(test_AsyncClass())   # asyncify class
-    #asyncio.run(test_AsyncPPClass())   # asyncify class PP
-    #asyncio.run(test_AsyncItr())   # asyncify iterator
-    asyncio.run(test_AsyncCtxMgr())   # asyncify ctx mgr
-    #asyncio.run(test_AsyncCtxMgr2())   # asyncify ctx mgr2
+    # asyncio.run(run_sync_func(1))  # not cancelled
+    # asyncio.run(run_sync_func(3))   # cancelled
+    # check_sync_func(1)  # creates coroutine -- not awaited!
+    # asyncio.run(test_SampleAsyncProperty())    # asyncify properties
+    # asyncio.run(test_SampleClsAsyncify())   # asyncify
+    # asyncio.run(test_AsyncClass())   # asyncify class
+    # asyncio.run(test_AsyncPPClass())   # asyncify class PP
+    # asyncio.run(test_AsyncItr())   # asyncify iterator
+    # asyncio.run(test_AsyncCtxMgr())  # asyncify ctx mgr
+    asyncio.run(test_AsyncCtxMgr2())  # asyncify ctx mgr2

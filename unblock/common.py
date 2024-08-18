@@ -8,11 +8,13 @@ def set_event_loop(loop):
     """
     Registry.register_event_loop(loop)
 
+
 def set_threadpool_executor(executor):
     """
     Set ThreadPoolExecutor
     """
     Registry.register_threadpool_executor(executor)
+
 
 def set_processpool_executor(executor):
     """
@@ -20,12 +22,15 @@ def set_processpool_executor(executor):
     """
     Registry.register_processpool_executor(executor)
 
+
 _THREAD_NAME_PREFIX = "unblock.asyncio"
+
 
 class Registry:
     """
     Responsible for configuring event loop and thread and process pool executors
     """
+
     _loop = None
     _thread_executor = None
     _process_executor = None
@@ -46,7 +51,7 @@ class Registry:
     @staticmethod
     def get_threadpool_executor():
         Registry._thread_executor = Registry._thread_executor or ThreadPoolExecutor(
-            thread_name_prefix =_THREAD_NAME_PREFIX
+            thread_name_prefix=_THREAD_NAME_PREFIX
         )
         return Registry._thread_executor
 
@@ -84,7 +89,6 @@ class Registry:
     @staticmethod
     def _get_default_event_loop():
         return asyncio.get_running_loop()
-
 
 
 class UnblockException(Exception):

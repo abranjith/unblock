@@ -28,7 +28,7 @@ Welcome to unblock's documentation!
 ***************
 .. code-block:: python
 
-   pip install unblockio
+   pip install get-unblock
 
 .. toctree::
    :maxdepth: 1

@@ -4,9 +4,6 @@
 # Note: To use the 'upload' functionality of this file, you must:
 #   $ pip install twine
 
-import io
-import os
-
 from setuptools import setup
 
 # Package meta-data.
@@ -39,7 +36,7 @@ setup(
     url=URL,
     python_requires=">=3.7.0",
     # If your package is a single module, use this instead of 'packages':
-    packages=["unblock", "unblock.io"],
+    packages=["unblock"],
     install_requires=REQUIRED,
     include_package_data=True,
     license="Apache-2.0",

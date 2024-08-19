@@ -7,7 +7,7 @@
 from setuptools import setup
 
 # Package meta-data.
-NAME = "unblock"
+NAME = "get-unblock"
 DESCRIPTION = "Simple solution to convert synchronous calls to asynchronous for use in asynchronous programming"
 URL = "https://github.com/abranjith/unblock"
 EMAIL = "abranjith@gmail.com"

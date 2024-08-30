@@ -4,9 +4,19 @@ API
 
 **unblock** is intended to be extensible in a way where it provides constructs to use in your own program to help you with async programming.
 
+A few important notes,
+
+*    unblock essentially uses threads or processes to execute your callables asynchronously. One differentiator in the API is if the API supports process it has PP in the name.
+     For e.g.,
+     asyncify, AsyncBase, AsyncCtxMgrIterBase all use threads whereas their counterparts asyncify_pp, AsyncPPBase, AsyncPPCtxMgrIterBase all use processes.
+
+*    Python has 3 main types of `awaitables <https://docs.python.org/3/library/asyncio-task.html#awaitables>`_ : coroutines, Tasks, and Futures. `Coroutines <https://docs.python.org/3/library/asyncio-task.html#coroutines>`_ are probably the most common ones (these are the ones declared with async/await syntax) and note that simply calling a coroutine will not schedule it to be executed.
+     unblock uses `Futures <https://docs.python.org/3/library/asyncio-future.html#future-object>`_ by way of running callables in an executor (thread or process pool executor) and unlike coroutines, futures are started as soon as they are called. 
+     Refer `this <https://blog.miguelgrinberg.com/post/using-javascript-style-async-promises-in-python>`_ article for some more details around this topic (mainly the 'How Async Works in Python' section).
+
+
 Examples
 ---------
-
 
 Asyncify methods of existing class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -95,7 +105,8 @@ Wrapper class can be created to use existing synchronous context manager as asyn
 
         def __exit__(self, exc_type, exc_value, traceback):
             #responsible for cleanup
-    
+
+    #use AsyncPPCtxMgrBase to use Process Pool executor 
    class MyCtxMgrAsync(AsyncCtxMgrBase):
 
         def __init__(self):
@@ -131,7 +142,8 @@ This essentially combines functionality of Asyncify Iterator and Asyncify Contex
         def close(self):
             #cleanup will be called by async ctx manager by default
             #set class field call_close_on_exit to False to not call close method as part of cleanup
-
+    
+    #use AsyncPPCtxMgrIterBase to use Process Pool executor 
     class MyIteratorCtxMgrAsync(AsyncCtxMgrIterBase):
 
         def __init__(self):
@@ -143,3 +155,22 @@ This essentially combines functionality of Asyncify Iterator and Asyncify Contex
         async for i in obj:
             print(i)
 
+
+Change defaults
+^^^^^^^^^^^^^^^
+unblock by default uses asyncio for event loop. But that can be changed to event loop of your choice as shown in the below example. 
+Similarly default ThreadPoolExecutor and ProcessPoolExecutors can be changed as well.
+
+
+.. code-block:: python
+
+   from unblock import set_event_loop, set_threadpool_executor, set_processpool_executor
+    
+    #set a different event loop
+    set_event_loop(event_loop)
+
+    #set a different ThreadPoolExecutor (has to implement concurrent.futures.ThreadPoolExecutor)
+    set_threadpool_executor(custom_threadpool_executor)
+
+    #set a different ProcessPoolExecutor (has to implement concurrent.futures.ProcessPoolExecutor)
+    set_processpool_executor(custom_processpool_executor)

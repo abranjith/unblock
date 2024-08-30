@@ -169,7 +169,7 @@ class MyClassAsync(MyClass, AsyncBase):
         return methods
 
 
-class MyClassAsyncPP(MyClass, AsyncPPBase):
+class MyClassAsyncPP(AsyncPPBase, MyClass):
 
     @staticmethod
     def _unblock_methods_to_asynchify():
@@ -254,8 +254,8 @@ async def test_AsyncClass():
 
 async def test_AsyncPPClass():
     o = MyClassAsyncPP(100)
-    await o.sync_fun("test")
-    await o.sync_fun2("test")
+    await o.sync_fun("pp test")
+    await o.sync_fun2("pp test")
 
 
 async def test_AsyncCtxMgr():

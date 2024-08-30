@@ -21,7 +21,7 @@ __all__ = [
 import inspect
 from functools import wraps, partial
 import contextlib
-import warnings
+import multiprocessing
 from typing import Callable, Awaitable, Type, Union
 from .common import Registry, UnblockException
 
@@ -225,6 +225,10 @@ class AsyncPPBase(_AsyncBase):
 
     @staticmethod
     def _unblock_asyncify(attr):
+        #if already in a spawned process, do not spawn more processes to keep it simple
+        #for such cases better to use ThreadPool vs ProcessPool
+        if (multiprocessing.current_process().name != "MainProcess"):
+            return attr
         return asyncify_pp(attr)
     
 class AsyncIterBase(AsyncBase):

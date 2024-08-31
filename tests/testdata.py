@@ -51,10 +51,8 @@ class TestAbstractClass:
 
 class TestClassAsyncWrapper(AsyncBase):
 
-    def __init__(self, a):
-        super().__init__(TestClass(a))
-
-    def _unblock_attrs_to_asynchify(self):
+    @staticmethod
+    def _unblock_methods_to_asynchify():
         methods = [
             "sync_static_method",
             "sync_class_method",

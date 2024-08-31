@@ -20,7 +20,7 @@ Examples
 
 Asyncify methods of existing class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If you have an existing class where you want to convert existing methods to asynchronous without modifying the original class, below is a way to do it. Create a wrapper class that has access to the original instance and also provide methods to asyncify in the _unblock_attrs_to_asynchify override method.
+If you have an existing class where you want to convert existing methods to asynchronous without modifying the original class, below is a way to do it. Create a wrapper class that has access to the original instance and also provide methods to asyncify in the _unblock_methods_to_asynchify override method.
 
 .. code-block:: python
 
@@ -35,13 +35,10 @@ If you have an existing class where you want to convert existing methods to asyn
             #do something
 
    #use AsyncPPBase to use Process Pool executor
-    class MyClassAsync(AsyncBase):
+    class MyClassAsync(MyClass, AsyncBase):
 
-        #this is important that wrapper class instantiates original class and provides it to the base class
-        def __init__(self):
-            super().__init__(MyClass())
-
-        def _unblock_attrs_to_asynchify(self):
+        @staticmethod
+        def _unblock_methods_to_asynchify():
             methods = [
                 "sync_method1",
                 "sync_method2",
@@ -72,13 +69,10 @@ Wrapper class can be created to use existing synchronous iterator as asynchronou
             #return next item
     
     #use AsyncPPIterBase to use Process Pool executor
-    class MyIteratorAsync(AsyncIterBase):
+    class MyIteratorAsync(MyIterator, AsyncIterBase):
 
-        #this is important that wrapper class instantiates original class and provides it to the base class
-        def __init__(self):
-            super().__init__(MyIterator())
-
-        def _unblock_attrs_to_asynchify(self):
+        @staticmethod
+        def _unblock_methods_to_asynchify():
             methods = [
                 #any methods that needs to be converted to async
             ]
@@ -107,10 +101,7 @@ Wrapper class can be created to use existing synchronous context manager as asyn
             #responsible for cleanup
 
     #use AsyncPPCtxMgrBase to use Process Pool executor 
-   class MyCtxMgrAsync(AsyncCtxMgrBase):
-
-        def __init__(self):
-            super().__init__(MyCtxMgr())
+   class MyCtxMgrAsync(MyCtxMgr, AsyncCtxMgrBase):
 
         #note that this is called automatically. If you don't want it called set call_close_on_exit field on the class to False
         async def aclose(self):
@@ -145,16 +136,16 @@ This essentially combines functionality of Asyncify Iterator and Asyncify Contex
     
     #use AsyncPPCtxMgrIterBase to use Process Pool executor 
     class MyIteratorCtxMgrAsync(AsyncCtxMgrIterBase):
-
-        def __init__(self):
-            super().__init__(MyIteratorCtxMgr())
-
+        pass
 
     #caller usage
     async with obj in MyIteratorCtxMgrAsync():
         async for i in obj:
             print(i)
 
+.. caution:: 
+   A word of caution about using process pool constructs (such as AsyncPPBase). Make sure these base classes are used in main process and not in spawned processes which can have undesirable results
+   
 
 Change defaults
 ^^^^^^^^^^^^^^^

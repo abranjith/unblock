@@ -304,5 +304,5 @@ if __name__ == "__main__":
     # asyncio.run(test_AsyncClass())   # asyncify class
     # asyncio.run(test_AsyncPPClass())   # asyncify class PP
     # asyncio.run(test_AsyncItr())   # asyncify iterator
-    # asyncio.run(test_AsyncCtxMgr())  # asyncify ctx mgr
-    asyncio.run(test_AsyncCtxMgr2())  # asyncify ctx mgr2
+    # asyncio.run(test_AsyncCtxMgr2())  # asyncify ctx mgr2
+    asyncio.run(test_AsyncCtxMgr())  # asyncify ctx mgr

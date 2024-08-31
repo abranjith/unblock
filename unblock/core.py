@@ -173,8 +173,8 @@ class async_cached_property(property):
         return value
     
 def is_descriptor_or_nonmethod(attr):
-    ismethod = inspect.isdatadescriptor(attr) or inspect.ismethoddescriptor(attr) or inspect.isgetsetdescriptor(attr) or inspect.ismemberdescriptor(attr)
-    return ismethod or (not inspect.isroutine(attr))
+    ismethoddesc = inspect.isdatadescriptor(attr) or inspect.ismethoddescriptor(attr) or inspect.isgetsetdescriptor(attr) or inspect.ismemberdescriptor(attr)
+    return ismethoddesc or (not inspect.isroutine(attr))
         
 class _AsyncMetaType(type):
 
@@ -245,7 +245,6 @@ class AsyncIterBase(AsyncBase):
                 raise StopAsyncIteration from ex
 
         return await asyncify_func(_next)()
-
 
 class AsyncCtxMgrBase(AsyncBase):
     call_close_on_exit = True

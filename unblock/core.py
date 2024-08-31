@@ -21,6 +21,7 @@ __all__ = [
 import inspect
 from functools import wraps, partial
 import contextlib
+import multiprocessing
 from typing import Callable, Awaitable, Type, Union
 from .common import Registry, UnblockException
 
@@ -170,56 +171,69 @@ class async_cached_property(property):
             value = await asyncify(self._fget)(obj)
             obj.__dict__[self.__name__] = value
         return value
+    
+def is_descriptor_or_nonmethod(attr):
+    ismethoddesc = inspect.isdatadescriptor(attr) or inspect.ismethoddescriptor(attr) or inspect.isgetsetdescriptor(attr) or inspect.ismemberdescriptor(attr)
+    return ismethoddesc or (not inspect.isroutine(attr))
+        
+class _AsyncMetaType(type):
 
-
-class _AsyncBase:
-    def __init__(self, original_obj):
-        self._original_obj = original_obj
-        if hasattr(original_obj, "__doc__"):
-            self.__doc__ = original_obj.__doc__
-        if hasattr(original_obj, "__repr__"):
-            self.__repr__ = original_obj.__repr__
-        if hasattr(original_obj, "__str__"):
-            self.__str__ = original_obj.__str__
-
-    def _get_attr(self, name):
-        if not hasattr(self._original_obj, name):
-            raise AttributeError(
-                f"'{self._original_obj.__class__.__name__}' object has no attribute '{name}'"
-            )
-        class_attr = getattr(self._original_obj.__class__, name)
-        if (
-            isinstance(class_attr, property)
-            and name in self._unblock_attrs_to_asynchify()
-        ):
+    def __getattribute__(cls, name):
+        attr = super().__getattribute__(name)
+        if name in ("_unblock_methods_to_asynchify","_unblock_asyncify"):
+            return attr
+        
+        if (name in cls._unblock_methods_to_asynchify()) and is_descriptor_or_nonmethod(attr):
             raise UnblockException(
-                f"{name} - Cannot use properties in _unblock_attrs_to_asynchify. Instead decorate with async_property"
+                f"{name} - Cannot use descriptors or non callables in _unblock_methods_to_asynchify.Instead explicitly asynchify such attributes"
             )
-        return getattr(self._original_obj, name)
+        
+        if name in cls._unblock_methods_to_asynchify():
+            return cls._unblock_asyncify(attr)
+        return attr
 
-    def _unblock_attrs_to_asynchify(self):
+class _AsyncBase(metaclass=_AsyncMetaType):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    def __getattribute__(self, name):
+        attr = object.__getattribute__(self, name)
+        if name in ("_unblock_methods_to_asynchify","_unblock_asyncify"):
+            return attr
+        
+        if (name in self._unblock_methods_to_asynchify()) and is_descriptor_or_nonmethod(attr):
+            raise UnblockException(
+                f"{name} - Cannot use descriptors or non callables in _unblock_methods_to_asynchify.Instead explicitly asynchify such attributes"
+            )
+        
+        if name in self._unblock_methods_to_asynchify():
+            return self._unblock_asyncify(attr)
+        return attr
+
+    @staticmethod
+    def _unblock_methods_to_asynchify():
         return []
 
-
 class AsyncBase(_AsyncBase):
-    def __getattr__(self, name):
-        attr = self._get_attr(name)
-        if name in self._unblock_attrs_to_asynchify():
-            return asyncify(attr)
-        return attr
 
+    @staticmethod
+    def _unblock_asyncify(attr):
+        return asyncify(attr)
 
 class AsyncPPBase(_AsyncBase):
-    def __getattr__(self, name):
-        attr = self._get_attr(name)
-        if name in self._unblock_attrs_to_asynchify():
-            return asyncify_pp(attr)
-        return attr
 
-
+    @staticmethod
+    def _unblock_asyncify(attr):
+        #if already in a spawned process, do not spawn more processes to keep it simple
+        #for such cases better to use ThreadPool vs ProcessPool
+        if (multiprocessing.current_process().name != "MainProcess"):
+            return attr
+        return asyncify_pp(attr)
+    
 class AsyncIterBase(AsyncBase):
     def __aiter__(self):
-        self._original_iterobj = iter(self._original_obj)
+        self._original_iterobj = iter(self)
         return self
 
     # see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
@@ -232,15 +246,14 @@ class AsyncIterBase(AsyncBase):
 
         return await asyncify_func(_next)()
 
-
 class AsyncCtxMgrBase(AsyncBase):
     call_close_on_exit = True
 
     async def __aenter__(self):
         self._stack = None
-        if hasattr(self._original_obj, "__enter__"):
+        if hasattr(self, "__enter__"):
             with contextlib.ExitStack() as stack:
-                stack.enter_context(self._original_obj)
+                stack.enter_context(self)
                 self._stack = stack.pop_all()
         return self
 
@@ -264,7 +277,7 @@ class AsyncCtxMgrIterBase(AsyncIterBase, AsyncCtxMgrBase):
 
 class AsyncPPIterBase(AsyncPPBase):
     def __aiter__(self):
-        self._original_iterobj = iter(self._original_obj)
+        self._original_iterobj = iter(self)
         return self
 
     # see more re: use of synchronous iterator as coroutine here - https://bugs.python.org/issue26221
@@ -284,9 +297,9 @@ class AsyncPPCtxMgrBase(AsyncPPBase):
 
     async def __aenter__(self):
         self._stack = None
-        if hasattr(self._original_obj, "__enter__"):
+        if hasattr(self, "__enter__"):
             with contextlib.ExitStack() as stack:
-                stack.enter_context(self._original_obj)
+                stack.enter_context(self)
                 self._stack = stack.pop_all()
         return self
 

@@ -110,24 +110,8 @@ use below process pool constructs.
     
     MyClass = asyncify_pp(MyClass)
 
-
-.. note:: Please refer samples.py under tests for some more examples.
-
-
-Switch Async event loop
-^^^^^^^^^^^^^^^^^^^^^^^^
-**unblock** by default uses asyncio for event loop. But that can be changed to event loop of your choice as shown in the below example. 
-Similarly default ThreadPoolExecutor and ProcessPoolExecutor can be changed as well.
-
-
-.. code-block:: python
-
-   from unblock import set_event_loop, set_threadpool_executor, set_processpool_executor
-    
-    #caller usage
-    set_event_loop(event_loop)  #set a different event loop
-    set_threadpool_executor(threadpool_executor)    #set a different ThreadPoolExecutor (has to be of type ThreadPoolExecutor)
-    set_processpool_executor(processpool_executor)  #set a different ProcessPoolExecutor (has to be of type ProcessPoolExecutor)
+.. note:: 
+   Please refer samples.py under tests for some more examples.
 
 
 Advanced usage

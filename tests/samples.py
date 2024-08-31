@@ -125,9 +125,14 @@ class SampleAsyncProperty:
 
 
 class MyClass:
+
     @staticmethod
     def static_method():
         print("static_method done")
+    
+    @classmethod
+    def cls_method(cls):
+        print(f"cls_method done for {cls}")
 
     def __init__(self, a):
         self.a = a
@@ -152,23 +157,22 @@ class MyClass:
         print(f"sync_fun2 {name} done")
 
 
-class MyClassAsync(AsyncBase):
-    def __init__(self, a):
-        super().__init__(MyClass(a))
+class MyClassAsync(MyClass, AsyncBase):
 
-    def _unblock_attrs_to_asynchify(self):
+    @staticmethod
+    def _unblock_methods_to_asynchify():
         methods = [
-            # "prop",
-            "sync_fun"
+            "sync_fun",
+            "static_method",
+            "cls_method"
         ]
         return methods
 
 
-class MyClassAsyncPP(AsyncPPBase):
-    def __init__(self, a):
-        super().__init__(MyClass(a))
+class MyClassAsyncPP(AsyncPPBase, MyClass):
 
-    def _unblock_attrs_to_asynchify(self):
+    @staticmethod
+    def _unblock_methods_to_asynchify():
         methods = ["sync_fun", "sync_fun2"]
         return methods
 
@@ -193,14 +197,13 @@ class MyCtxMgr:
         print(f"sync_fun {name} done")
 
 
-class MyCtxMgrAsync(AsyncCtxMgrBase):
-    def __init__(self, a):
-        super().__init__(MyCtxMgr(a))
+class MyCtxMgrAsync(MyCtxMgr, AsyncCtxMgrBase):
 
     def aclose(self):
         print("Closing MyCtxMgrAsync")
 
-    def _unblock_attrs_to_asynchify(self):
+    @staticmethod
+    def _unblock_methods_to_asynchify():
         methods = ["sync_fun"]
         return methods
 
@@ -214,9 +217,7 @@ class MyCtxMgr2:
         print(f"sync_fun {name} done")
 
 
-class MyCtxMgrAsync2(AsyncCtxMgrBase):
-    def __init__(self):
-        super().__init__(MyCtxMgr2())
+class MyCtxMgrAsync2(MyCtxMgr2, AsyncCtxMgrBase):
 
     async def aclose(self):
         await asyncio.sleep(0)
@@ -224,6 +225,7 @@ class MyCtxMgrAsync2(AsyncCtxMgrBase):
 
 
 class MyItr:
+
     def __iter__(self):
         self.n = 0
         return self
@@ -235,23 +237,25 @@ class MyItr:
         return self.n
 
 
-class MyItrAsync(AsyncIterBase):
-    def __init__(self):
-        super().__init__(MyItr())
-
+class MyItrAsync(MyItr, AsyncIterBase):
+    pass
 
 async def test_AsyncClass():
     o = MyClassAsync(100)
     t = o.sync_fun("test")
     time.sleep(3)
     print(o.prop)
+    await o.static_method()
+    await o.cls_method()
+    await MyClassAsync.static_method()
+    await MyClassAsync.cls_method()
     await t
 
 
 async def test_AsyncPPClass():
     o = MyClassAsyncPP(100)
-    await o.sync_fun("test")
-    await o.sync_fun2("test")
+    await o.sync_fun("pp test")
+    await o.sync_fun2("pp test")
 
 
 async def test_AsyncCtxMgr():
@@ -300,5 +304,5 @@ if __name__ == "__main__":
     # asyncio.run(test_AsyncClass())   # asyncify class
     # asyncio.run(test_AsyncPPClass())   # asyncify class PP
     # asyncio.run(test_AsyncItr())   # asyncify iterator
-    # asyncio.run(test_AsyncCtxMgr())  # asyncify ctx mgr
-    asyncio.run(test_AsyncCtxMgr2())  # asyncify ctx mgr2
+    # asyncio.run(test_AsyncCtxMgr2())  # asyncify ctx mgr2
+    asyncio.run(test_AsyncCtxMgr())  # asyncify ctx mgr

@@ -69,7 +69,7 @@ def asyncify_cls(cls: Type) -> Type:
     """
     Converts synchronous methods of class to asynch.
     """
-    for attr_name, attr in cls.__dict__.items():
+    for attr_name, attr in inspect.getmembers(cls, lambda att : inspect.isroutine(att)):
         # this is a generic logic to skip special methods
         if attr_name.startswith("_"):
             continue
@@ -118,7 +118,7 @@ def asyncify_cls_pp(cls: Type) -> Type:
     """
     Similar to asyncify_cls function above, but uses ProcessPool executor (run as a separate process)
     """
-    for attr_name, attr in cls.__dict__.items():
+    for attr_name, attr in inspect.getmembers(cls, lambda att : inspect.isroutine(att)):
         # this is a generic logic to skip special methods
         if attr_name.startswith("_"):
             continue
@@ -226,7 +226,7 @@ class AsyncPPBase(_AsyncBase):
     @staticmethod
     def _unblock_asyncify(attr):
         #if already in a spawned process, do not spawn more processes to keep it simple
-        #for such cases better to use ThreadPool vs ProcessPool
+        #for such use cases better to use ThreadPool vs ProcessPool
         if (multiprocessing.current_process().name != "MainProcess"):
             return attr
         return asyncify_pp(attr)

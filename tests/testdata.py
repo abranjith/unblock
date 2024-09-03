@@ -49,7 +49,84 @@ class TestAbstractClass:
     def sync_abstract_method(self):
         pass
 
-class TestClassAsyncWrapper(AsyncBase):
+class TestIterClass:
+
+    @staticmethod
+    def sync_static_method():
+        return TestIterClass.sync_static_method.__name__
+    
+    @classmethod
+    def sync_class_method(cls):
+        return  f"{cls.__name__}.{TestIterClass.sync_class_method.__name__}"
+
+    def __init__(self, start, end) -> None:
+        self.start = start
+        self.end = end
+    
+    def sync_method(self):
+        return self.sync_method.__name__
+    
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        st = self.start
+        self.start += 1
+        if self.start >= self.end:
+            raise StopIteration()
+        return st
+
+class TestCtxMgrClass:
+
+    @staticmethod
+    def sync_static_method():
+        return TestIterClass.sync_static_method.__name__
+    
+    @classmethod
+    def sync_class_method(cls):
+        return  f"{cls.__name__}.{TestIterClass.sync_class_method.__name__}"
+
+    def sync_method(self):
+        return self.sync_method.__name__
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+    
+    def close(self):
+        return self.close.__name__ 
+
+@asyncify
+class TestClassAsyncify(TestClass):
+    pass
+
+@asyncify_pp
+class TestClassAsyncifyPP(TestClass):
+    pass
+
+class TestAsyncProperty:
+    
+    @async_property
+    def prop(self):
+        return "prop"
+    
+    @async_cached_property
+    def cahed_prop(self):
+        return "cahed_prop"
+
+class TestClassAsyncWrapper(TestClass, AsyncBase):
+
+    @staticmethod
+    def _unblock_methods_to_asynchify():
+        return [
+            "sync_static_method",
+            "sync_class_method",
+            "sync_method"
+        ]
+
+class TestClassAsyncPPWrapper(TestClass, AsyncPPBase):
 
     @staticmethod
     def _unblock_methods_to_asynchify():
@@ -59,8 +136,3 @@ class TestClassAsyncWrapper(AsyncBase):
             "sync_method"
         ]
         return methods
-
-class TestClassAsyncPPWrapper(AsyncPPBase):
-
-    def __init__(self, a):
-        super().__init__(TestClass(a))

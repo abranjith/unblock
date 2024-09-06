@@ -69,9 +69,9 @@ def asyncify_cls(cls: Type) -> Type:
     """
     Converts synchronous methods of class to asynch.
     """
-    for attr_name, attr in inspect.getmembers(cls, lambda att : inspect.isroutine(att)):
+    for attr_name, attr in cls.__dict__.items():
         # this is a generic logic to skip special methods
-        if attr_name.startswith("_"):
+        if attr_name.startswith("_") or (not inspect.isfunction(attr)):
             continue
         setattr(cls, attr_name, asyncify(attr))
     return cls
@@ -118,9 +118,9 @@ def asyncify_cls_pp(cls: Type) -> Type:
     """
     Similar to asyncify_cls function above, but uses ProcessPool executor (run as a separate process)
     """
-    for attr_name, attr in inspect.getmembers(cls, lambda att : inspect.isroutine(att)):
+    for attr_name, attr in cls.__dict__.items():
         # this is a generic logic to skip special methods
-        if attr_name.startswith("_"):
+        if attr_name.startswith("_") or (not inspect.isfunction(attr)):
             continue
         setattr(cls, attr_name, asyncify_pp(attr))
     return cls
@@ -175,7 +175,7 @@ class async_cached_property(property):
 def is_descriptor_or_nonmethod(attr):
     ismethoddesc = inspect.isdatadescriptor(attr) or inspect.ismethoddescriptor(attr) or inspect.isgetsetdescriptor(attr) or inspect.ismemberdescriptor(attr)
     return ismethoddesc or (not inspect.isroutine(attr))
-        
+
 class _AsyncMetaType(type):
 
     def __getattribute__(cls, name):

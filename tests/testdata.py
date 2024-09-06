@@ -100,11 +100,43 @@ class TestCtxMgrClass:
 
 @asyncify
 class TestClassAsyncify(TestClass):
-    pass
+    @staticmethod
+    def sync_static_method():
+        return TestClassAsyncify.sync_static_method.__name__
+    
+    @classmethod
+    def sync_class_method(cls):
+        return  f"{cls.__name__}.{TestClassAsyncify.sync_class_method.__name__}"
+
+    def __init__(self, a) -> None:
+        self.a = a
+    
+    def sync_method(self):
+        return self.sync_method.__name__
+    
+    async def async_method(self):
+        await asyncio.sleep(0)
+        return self.async_method.__name__
 
 @asyncify_pp
 class TestClassAsyncifyPP(TestClass):
-    pass
+    @staticmethod
+    def sync_static_method():
+        return TestClass.sync_static_method.__name__
+    
+    @classmethod
+    def sync_class_method(cls):
+        return  f"{cls.__name__}.{TestClass.sync_class_method.__name__}"
+
+    def __init__(self, a) -> None:
+        self.a = a
+    
+    def sync_method(self):
+        return self.sync_method.__name__
+    
+    async def async_method(self):
+        await asyncio.sleep(0)
+        return self.async_method.__name__
 
 class TestAsyncProperty:
     

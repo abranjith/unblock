@@ -4,7 +4,6 @@ __all__ = [
     "asyncify_cls",
     "asyncify_pp",
     "asyncify_func_pp",
-    "asyncify_cls_pp",
     "async_property",
     "async_cached_property",
     "AsyncBase",
@@ -86,7 +85,7 @@ def asyncify_pp(arg: Union[Callable, Awaitable, Type]) -> Union[Awaitable, Type]
     if inspect.isroutine(arg):
         return asyncify_func_pp(arg)
     if inspect.isclass(arg):
-        return asyncify_cls_pp(arg)
+        raise UnblockException(f"asyncifying class {arg} is not supported using ProcessPool")
     return arg
 
 
@@ -113,7 +112,9 @@ def asyncify_func_pp(func: Callable) -> Awaitable:
 
     return _wrapper
 
-
+'''
+# Not supported due to constraints with how pickling works.
+# More on it - https://stackoverflow.com/a/52186874
 def asyncify_cls_pp(cls: Type) -> Type:
     """
     Similar to asyncify_cls function above, but uses ProcessPool executor (run as a separate process)
@@ -124,9 +125,10 @@ def asyncify_cls_pp(cls: Type) -> Type:
             continue
         setattr(cls, attr_name, asyncify_pp(attr))
     return cls
-
+'''
 
 class async_property(property):
+
     def __init__(self, _fget, name=None, doc=None):
         self.__name__ = name or _fget.__name__
         self.__module__ = _fget.__module__

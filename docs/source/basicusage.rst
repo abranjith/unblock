@@ -87,28 +87,7 @@ use below process pool constructs.
     my_sync_func = asyncify_pp(my_sync_func)
 
 
-*   Convert all synchronous methods of a class to asynchronous that uses ProcessPool
-
-.. code-block:: python
-
-   import asyncio
-   from unblock import asyncify_pp
-    
-    class MyClass:
-
-        def my_sync_func(self):
-            #do something
-
-        def my_another_sync_func(self):
-            #do something
-
-        def _my_private_method(self):
-            #this will not be converted to async
-
-        async def my_async_func(self):
-            #since this is already async, there is no impact
-    
-    MyClass = asyncify_pp(MyClass)
+*   Note that asyncify_pp cannot be used with classes unlike asyncify. This is due to constraints with how `pickling works <https://stackoverflow.com/a/52186874>`_ .
 
 .. note:: 
    Please refer samples.py under tests for some more examples.

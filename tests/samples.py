@@ -274,7 +274,6 @@ async def test_AsyncItr():
 
 
 async def test_SampleClsAsyncify():
-    await SampleClsAsyncify.static_method()
     t = SampleClsAsyncify(100)
     r = t._asleep()
     await t.async_fun()
@@ -282,8 +281,11 @@ async def test_SampleClsAsyncify():
     await r
     print(t.prop)
     print(await t.aprop)
-    await t.cls_method()
     await t.abs_method()
+    #await t.cls_method()   #not supported
+    #await t.static_method() #not supported
+    #await SampleClsAsyncify.static_method() #no supported
+
 
 
 async def test_SampleAsyncProperty():

@@ -16,6 +16,12 @@ from unblock import (
 def test_sync_func():
     return test_sync_func.__name__
 
+@asyncify
+def asyncify_test_sync_func():
+    return test_sync_func()
+
+asyncifypp_test_sync_func = asyncify_pp(test_sync_func)
+
 async def test_async_func():
     await asyncio.sleep(0)
     return test_async_func.__name__
@@ -99,7 +105,8 @@ class TestCtxMgrClass:
         return self.close.__name__ 
 
 @asyncify
-class TestClassAsyncify(TestClass):
+class TestClassAsyncify:
+
     @staticmethod
     def sync_static_method():
         return TestClassAsyncify.sync_static_method.__name__
@@ -107,26 +114,6 @@ class TestClassAsyncify(TestClass):
     @classmethod
     def sync_class_method(cls):
         return  f"{cls.__name__}.{TestClassAsyncify.sync_class_method.__name__}"
-
-    def __init__(self, a) -> None:
-        self.a = a
-    
-    def sync_method(self):
-        return self.sync_method.__name__
-    
-    async def async_method(self):
-        await asyncio.sleep(0)
-        return self.async_method.__name__
-
-@asyncify_pp
-class TestClassAsyncifyPP(TestClass):
-    @staticmethod
-    def sync_static_method():
-        return TestClass.sync_static_method.__name__
-    
-    @classmethod
-    def sync_class_method(cls):
-        return  f"{cls.__name__}.{TestClass.sync_class_method.__name__}"
 
     def __init__(self, a) -> None:
         self.a = a

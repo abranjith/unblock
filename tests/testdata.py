@@ -86,11 +86,11 @@ class TestCtxMgrClass:
 
     @staticmethod
     def sync_static_method():
-        return TestIterClass.sync_static_method.__name__
+        return TestCtxMgrClass.sync_static_method.__name__
     
     @classmethod
     def sync_class_method(cls):
-        return  f"{cls.__name__}.{TestIterClass.sync_class_method.__name__}"
+        return  f"{cls.__name__}.{TestCtxMgrClass.sync_class_method.__name__}"
 
     def sync_method(self):
         return self.sync_method.__name__
@@ -132,8 +132,8 @@ class TestAsyncProperty:
         return "prop"
     
     @async_cached_property
-    def cahed_prop(self):
-        return "cahed_prop"
+    def cached_prop(self):
+        return "cached_prop"
 
 class TestClassAsyncWrapper(TestClass, AsyncBase):
 
@@ -142,7 +142,8 @@ class TestClassAsyncWrapper(TestClass, AsyncBase):
         return [
             "sync_static_method",
             "sync_class_method",
-            "sync_method"
+            "sync_method",
+            "async_method"
         ]
 
 class TestClassAsyncPPWrapper(TestClass, AsyncPPBase):
@@ -152,6 +153,13 @@ class TestClassAsyncPPWrapper(TestClass, AsyncPPBase):
         methods = [
             "sync_static_method",
             "sync_class_method",
-            "sync_method"
+            "sync_method",
+            "async_method"
         ]
         return methods
+
+class TestIterClassAsyncWrapper(TestIterClass):
+    pass
+
+class TestCtxMgrClassAsyncWrapper(TestCtxMgrClass):
+    pass

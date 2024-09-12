@@ -11,6 +11,8 @@ from unblock import (
     AsyncBase,
     AsyncCtxMgrBase,
     AsyncIterBase,
+    AsyncPPCtxMgrBase,
+    AsyncPPIterBase
 )
 
 def test_sync_func():
@@ -78,7 +80,7 @@ class TestIterClass:
     def __next__(self):
         st = self.start
         self.start += 1
-        if self.start >= self.end:
+        if st >= self.end:
             raise StopIteration()
         return st
 
@@ -91,6 +93,9 @@ class TestCtxMgrClass:
     @classmethod
     def sync_class_method(cls):
         return  f"{cls.__name__}.{TestCtxMgrClass.sync_class_method.__name__}"
+    
+    def __init__(self) -> None:
+        self.is_done = False
 
     def sync_method(self):
         return self.sync_method.__name__
@@ -102,7 +107,7 @@ class TestCtxMgrClass:
         self.close()
     
     def close(self):
-        return self.close.__name__ 
+        self.is_done = True 
 
 @asyncify
 class TestClassAsyncify:
@@ -126,14 +131,20 @@ class TestClassAsyncify:
         return self.async_method.__name__
 
 class TestAsyncProperty:
+
+    def __init__(self, val) -> None:
+        self._prop = val
+
+    def set_prop(self, val):
+        self._prop = val
     
     @async_property
     def prop(self):
-        return "prop"
+        return self._prop
     
     @async_cached_property
     def cached_prop(self):
-        return "cached_prop"
+        return self._prop
 
 class TestClassAsyncWrapper(TestClass, AsyncBase):
 
@@ -158,8 +169,52 @@ class TestClassAsyncPPWrapper(TestClass, AsyncPPBase):
         ]
         return methods
 
-class TestIterClassAsyncWrapper(TestIterClass):
+class TestIterClassAsyncWrapper(TestIterClass, AsyncIterBase):
     pass
 
-class TestCtxMgrClassAsyncWrapper(TestCtxMgrClass):
+class TestIterClassAsyncPPWrapper(TestIterClass, AsyncPPIterBase):
     pass
+
+class TestCtxMgrClassAsyncWrapper(TestCtxMgrClass, AsyncCtxMgrBase):
+    
+    def __init__(self) -> None:
+        super().__init__()
+        self.is_async_done = False
+
+    async def aclose(self):
+        await asyncio.sleep(0)
+        self.is_async_done = True
+
+class TestCtxMgrClassAsyncWrapper2(TestCtxMgrClass, AsyncCtxMgrBase):
+
+    call_close_on_exit = False
+    
+    def __init__(self) -> None:
+        super().__init__()
+        self.is_async_done = False
+
+    async def aclose(self):
+        await asyncio.sleep(0)
+        self.is_async_done = True
+
+class TestCtxMgrClassAsyncPPWrapper(TestCtxMgrClass, AsyncPPCtxMgrBase):
+    
+    def __init__(self) -> None:
+        super().__init__()
+        self.is_async_done = False
+
+    async def aclose(self):
+        await asyncio.sleep(0)
+        self.is_async_done = True
+
+class TestCtxMgrClassAsyncPPWrapper2(TestCtxMgrClass, AsyncPPCtxMgrBase):
+
+    call_close_on_exit = False
+    
+    def __init__(self) -> None:
+        super().__init__()
+        self.is_async_done = False
+
+    async def aclose(self):
+        await asyncio.sleep(0)
+        self.is_async_done = True

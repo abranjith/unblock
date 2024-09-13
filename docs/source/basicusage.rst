@@ -67,6 +67,9 @@ If you already have methods that are asynchronous, they will continue to work no
         async def my_async_func(self):
             #since this is already async, there is no impact
 
+.. note:: 
+   Note that, when asyncify is used on a class, only class methods are converted to asynchronous. Inherited methods from the base classes are not.
+
 
 Process Pool constructs
 ^^^^^^^^^^^^^^^^^^^^^^^^

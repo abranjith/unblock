@@ -5,6 +5,23 @@ description = "unblock comes with utilities that can be used to convert synchron
 dependencies = []
 readme = "README.md"
 requires-python = ">= 3.7"
+license = {file = "LICENSE"}
+authors = [
+  {name = "ranjith", email = "abranjith@gmail.com"}
+]
+keywords = ["unblock", "unblockio", "unblock io", "asyncify", "async io", "async utils"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python"
+]
+
+[project.urls]
+Homepage = "https://unblock.readthedocs.io/en/latest/basicusage.html"
+Documentation = "https://unblock.readthedocs.io/en/latest/basicusage.html"
+Repository = "https://github.com/abranjith/unblock"
+Issues = "https://github.com/abranjith/unblock/issues"
+Changelog = "https://github.com/abranjith/unblock?tab=readme-ov-file#release-notes"
 
 [build-system]
 requires = ["hatchling"]

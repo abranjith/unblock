@@ -1,3 +1,8 @@
+"""
+Core constucts that can be used for asyncifying functions/ methods
+"""
+
+
 __all__ = [
     "asyncify",
     "asyncify_func",
@@ -21,7 +26,7 @@ import inspect
 from functools import wraps, partial
 import contextlib
 import multiprocessing
-from typing import Callable, Awaitable, Type, Union
+from typing import Callable, Awaitable, Type, Union, Any
 from .common import Registry, UnblockException
 
 
@@ -128,6 +133,16 @@ def asyncify_cls_pp(cls: Type) -> Type:
 '''
 
 class async_property(property):
+    """
+    Similar to property, but async!
+    Usage,
+        class C:
+            @async_property
+            def prop(self):
+                ...
+        c = C()
+        await c.prop()
+    """
 
     def __init__(self, _fget, name=None, doc=None):
         self.__name__ = name or _fget.__name__
@@ -147,6 +162,16 @@ class async_property(property):
 
 
 class async_cached_property(property):
+    """
+    Similar to property, but async. Result once set is cached
+    Usage,
+        class C:
+            @async_cached_property
+            def prop(self):
+                ...
+        c = C()
+        await c.prop()
+    """
     def __init__(self, _fget, name=None, doc=None):
         self.__name__ = name or _fget.__name__
         self.__module__ = _fget.__module__
@@ -174,18 +199,17 @@ class async_cached_property(property):
             obj.__dict__[self.__name__] = value
         return value
     
-def is_descriptor_or_nonmethod(attr):
-    ismethoddesc = inspect.isdatadescriptor(attr) or inspect.ismethoddescriptor(attr) or inspect.isgetsetdescriptor(attr) or inspect.ismemberdescriptor(attr)
-    return ismethoddesc or (not inspect.isroutine(attr))
-
 class _AsyncMetaType(type):
+    """
+    Metaclass that takes care of asyncifying class level attributes
+    """
 
     def __getattribute__(cls, name):
         attr = super().__getattribute__(name)
         if name in ("_unblock_methods_to_asynchify","_unblock_asyncify"):
             return attr
         
-        if (name in cls._unblock_methods_to_asynchify()) and is_descriptor_or_nonmethod(attr):
+        if (name in cls._unblock_methods_to_asynchify()) and _is_descriptor_or_nonmethod(attr):
             raise UnblockException(
                 f"{name} - Cannot use descriptors or non callables in _unblock_methods_to_asynchify.Instead explicitly asynchify such attributes"
             )
@@ -195,6 +219,9 @@ class _AsyncMetaType(type):
         return attr
 
 class _AsyncBase(metaclass=_AsyncMetaType):
+    """
+    Base class for all class level constructs such as AsyncBase etc
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -204,7 +231,7 @@ class _AsyncBase(metaclass=_AsyncMetaType):
         if name in ("_unblock_methods_to_asynchify","_unblock_asyncify"):
             return attr
         
-        if (name in self._unblock_methods_to_asynchify()) and is_descriptor_or_nonmethod(attr):
+        if (name in self._unblock_methods_to_asynchify()) and _is_descriptor_or_nonmethod(attr):
             raise UnblockException(
                 f"{name} - Cannot use descriptors or non callables in _unblock_methods_to_asynchify.Instead explicitly asynchify such attributes"
             )
@@ -335,7 +362,7 @@ def _get_future_from_processpool(fn: Callable) -> Awaitable:
     return loop.run_in_executor(executor, fn)
 
 
-def _has_callable_close(obj):
+def _has_callable_close(obj: Any) -> bool:
     if hasattr(obj, "close"):
         return inspect.isroutine(obj.close) and (
             not any(inspect.signature(obj.close).parameters)
@@ -343,9 +370,13 @@ def _has_callable_close(obj):
     return False
 
 
-def _has_callable_aclose(obj):
+def _has_callable_aclose(obj: Any) -> bool:
     if hasattr(obj, "aclose"):
         return inspect.isroutine(obj.aclose) and (
             not any(inspect.signature(obj.aclose).parameters)
         )
     return False
+
+def _is_descriptor_or_nonmethod(attr) -> bool:
+    ismethoddesc = inspect.isdatadescriptor(attr) or inspect.ismethoddescriptor(attr) or inspect.isgetsetdescriptor(attr) or inspect.ismemberdescriptor(attr)
+    return ismethoddesc or (not inspect.isroutine(attr))

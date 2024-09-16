@@ -165,3 +165,8 @@ Similarly default ThreadPoolExecutor and ProcessPoolExecutors can be changed as 
 
     #set a different ProcessPoolExecutor (has to implement concurrent.futures.ProcessPoolExecutor)
     set_processpool_executor(custom_processpool_executor)
+
+
+Run Unit Tests
+^^^^^^^^^^^^^^^
+Note that in order to run the unit tests, you will require **python 3.8** or higher.

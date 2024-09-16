@@ -125,11 +125,10 @@ class SampleAsyncProperty:
 
 
 class MyClass:
-
     @staticmethod
     def static_method():
         print("static_method done")
-    
+
     @classmethod
     def cls_method(cls):
         print(f"cls_method done for {cls}")
@@ -158,19 +157,13 @@ class MyClass:
 
 
 class MyClassAsync(MyClass, AsyncBase):
-
     @staticmethod
     def _unblock_methods_to_asynchify():
-        methods = [
-            "sync_fun",
-            "static_method",
-            "cls_method"
-        ]
+        methods = ["sync_fun", "static_method", "cls_method"]
         return methods
 
 
 class MyClassAsyncPP(AsyncPPBase, MyClass):
-
     @staticmethod
     def _unblock_methods_to_asynchify():
         methods = ["sync_fun", "sync_fun2"]
@@ -198,7 +191,6 @@ class MyCtxMgr:
 
 
 class MyCtxMgrAsync(MyCtxMgr, AsyncCtxMgrBase):
-
     def aclose(self):
         print("Closing MyCtxMgrAsync")
 
@@ -218,14 +210,12 @@ class MyCtxMgr2:
 
 
 class MyCtxMgrAsync2(MyCtxMgr2, AsyncCtxMgrBase):
-
     async def aclose(self):
         await asyncio.sleep(0)
         print("Closing MyCtxMgrAsync2")
 
 
 class MyItr:
-
     def __iter__(self):
         self.n = 0
         return self
@@ -239,6 +229,7 @@ class MyItr:
 
 class MyItrAsync(MyItr, AsyncIterBase):
     pass
+
 
 async def test_AsyncClass():
     o = MyClassAsync(100)
@@ -282,10 +273,9 @@ async def test_SampleClsAsyncify():
     print(t.prop)
     print(await t.aprop)
     await t.abs_method()
-    #await t.cls_method()   #not supported
-    #await t.static_method() #not supported
-    #await SampleClsAsyncify.static_method() #no supported
-
+    # await t.cls_method()   #not supported
+    # await t.static_method() #not supported
+    # await SampleClsAsyncify.static_method() #no supported
 
 
 async def test_SampleAsyncProperty():
@@ -302,7 +292,7 @@ if __name__ == "__main__":
     # asyncio.run(run_sync_func(3))   # cancelled
     # check_sync_func(1)  # creates coroutine -- not awaited!
     # asyncio.run(test_SampleAsyncProperty())    # asyncify properties
-    asyncio.run(test_SampleClsAsyncify())   # asyncify
+    asyncio.run(test_SampleClsAsyncify())  # asyncify
     # asyncio.run(test_AsyncClass())   # asyncify class
     # asyncio.run(test_AsyncPPClass())   # asyncify class PP
     # asyncio.run(test_AsyncItr())   # asyncify iterator

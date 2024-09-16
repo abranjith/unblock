@@ -8,3 +8,11 @@ from .common import (
     set_threadpool_executor,
 )
 from .core import *
+
+
+__all__ = core.__all__ + [
+    "Registry",
+    "set_event_loop",
+    "set_processpool_executor",
+    "set_threadpool_executor",
+]

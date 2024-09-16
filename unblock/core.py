@@ -2,7 +2,6 @@
 Core constucts that can be used for asyncifying functions/ methods
 """
 
-
 __all__ = [
     "asyncify",
     "asyncify_func",
@@ -90,7 +89,9 @@ def asyncify_pp(arg: Union[Callable, Awaitable, Type]) -> Union[Awaitable, Type]
     if inspect.isroutine(arg):
         return asyncify_func_pp(arg)
     if inspect.isclass(arg):
-        raise UnblockException(f"asyncifying class {arg} is not supported using ProcessPool")
+        raise UnblockException(
+            f"asyncifying class {arg} is not supported using ProcessPool"
+        )
     return arg
 
 
@@ -117,6 +118,7 @@ def asyncify_func_pp(func: Callable) -> Awaitable:
 
     return _wrapper
 
+
 '''
 # Not supported due to constraints with how pickling works.
 # More on it - https://stackoverflow.com/a/52186874
@@ -131,6 +133,7 @@ def asyncify_cls_pp(cls: Type) -> Type:
         setattr(cls, attr_name, asyncify_pp(attr))
     return cls
 '''
+
 
 class async_property(property):
     """
@@ -172,6 +175,7 @@ class async_cached_property(property):
         c = C()
         await c.prop()
     """
+
     def __init__(self, _fget, name=None, doc=None):
         self.__name__ = name or _fget.__name__
         self.__module__ = _fget.__module__
@@ -198,7 +202,8 @@ class async_cached_property(property):
             value = await asyncify(self._fget)(obj)
             obj.__dict__[self.__name__] = value
         return value
-    
+
+
 class _AsyncMetaType(type):
     """
     Metaclass that takes care of asyncifying class level attributes
@@ -206,17 +211,20 @@ class _AsyncMetaType(type):
 
     def __getattribute__(cls, name):
         attr = super().__getattribute__(name)
-        if name in ("_unblock_methods_to_asynchify","_unblock_asyncify"):
+        if name in ("_unblock_methods_to_asynchify", "_unblock_asyncify"):
             return attr
-        
-        if (name in cls._unblock_methods_to_asynchify()) and _is_descriptor_or_nonmethod(attr):
+
+        if (
+            name in cls._unblock_methods_to_asynchify()
+        ) and _is_descriptor_or_nonmethod(attr):
             raise UnblockException(
                 f"{name} - Cannot use descriptors or non callables in _unblock_methods_to_asynchify.Instead explicitly asynchify such attributes"
             )
-        
+
         if name in cls._unblock_methods_to_asynchify():
             return cls._unblock_asyncify(attr)
         return attr
+
 
 class _AsyncBase(metaclass=_AsyncMetaType):
     """
@@ -225,17 +233,19 @@ class _AsyncBase(metaclass=_AsyncMetaType):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
+
     def __getattribute__(self, name):
         attr = object.__getattribute__(self, name)
-        if name in ("_unblock_methods_to_asynchify","_unblock_asyncify"):
+        if name in ("_unblock_methods_to_asynchify", "_unblock_asyncify"):
             return attr
-        
-        if (name in self._unblock_methods_to_asynchify()) and _is_descriptor_or_nonmethod(attr):
+
+        if (
+            name in self._unblock_methods_to_asynchify()
+        ) and _is_descriptor_or_nonmethod(attr):
             raise UnblockException(
                 f"{name} - Cannot use descriptors or non callables in _unblock_methods_to_asynchify.Instead explicitly asynchify such attributes"
             )
-        
+
         if name in self._unblock_methods_to_asynchify():
             return self._unblock_asyncify(attr)
         return attr
@@ -244,22 +254,23 @@ class _AsyncBase(metaclass=_AsyncMetaType):
     def _unblock_methods_to_asynchify():
         return []
 
-class AsyncBase(_AsyncBase):
 
+class AsyncBase(_AsyncBase):
     @staticmethod
     def _unblock_asyncify(attr):
         return asyncify(attr)
 
-class AsyncPPBase(_AsyncBase):
 
+class AsyncPPBase(_AsyncBase):
     @staticmethod
     def _unblock_asyncify(attr):
-        #if already in a spawned process, do not spawn more processes to keep it simple
-        #for such use cases better to use ThreadPool vs ProcessPool
-        if (multiprocessing.current_process().name != "MainProcess"):
+        # if already in a spawned process, do not spawn more processes to keep it simple
+        # for such use cases better to use ThreadPool vs ProcessPool
+        if multiprocessing.current_process().name != "MainProcess":
             return attr
         return asyncify_pp(attr)
-    
+
+
 class AsyncIterBase(AsyncBase):
     def __aiter__(self):
         self._original_iterobj = iter(self)
@@ -274,6 +285,7 @@ class AsyncIterBase(AsyncBase):
                 raise StopAsyncIteration from ex
 
         return await asyncify_func(_next)()
+
 
 class AsyncCtxMgrBase(AsyncBase):
     call_close_on_exit = True
@@ -377,6 +389,12 @@ def _has_callable_aclose(obj: Any) -> bool:
         )
     return False
 
+
 def _is_descriptor_or_nonmethod(attr) -> bool:
-    ismethoddesc = inspect.isdatadescriptor(attr) or inspect.ismethoddescriptor(attr) or inspect.isgetsetdescriptor(attr) or inspect.ismemberdescriptor(attr)
+    ismethoddesc = (
+        inspect.isdatadescriptor(attr)
+        or inspect.ismethoddescriptor(attr)
+        or inspect.isgetsetdescriptor(attr)
+        or inspect.ismemberdescriptor(attr)
+    )
     return ismethoddesc or (not inspect.isroutine(attr))

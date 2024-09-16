@@ -75,7 +75,10 @@ class Registry:
             return False
 
     @staticmethod
-    def _ensure_executor(executor: Union[ProcessPoolExecutor, ThreadPoolExecutor], process_pool: bool = False) -> None:
+    def _ensure_executor(
+        executor: Union[ProcessPoolExecutor, ThreadPoolExecutor],
+        process_pool: bool = False,
+    ) -> None:
         if process_pool:
             if not isinstance(executor, ProcessPoolExecutor):
                 raise ValueError(

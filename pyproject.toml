@@ -1,6 +1,6 @@
 [project]
 name = "get-unblock"
-version = "0.1.0"
+version = "0.0.1"
 description = "unblock comes with utilities that can be used to convert synchronous functions to async for use in event loop"
 dependencies = []
 readme = "README.md"

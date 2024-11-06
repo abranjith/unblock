@@ -12,8 +12,10 @@ from unblock import (
     AsyncBase,
     AsyncCtxMgrBase,
     AsyncIterBase,
+    AsyncCtxMgrIterBase,
     AsyncPPCtxMgrBase,
     AsyncPPIterBase,
+    AsyncPPCtxMgrIterBase
 )
 
 
@@ -204,6 +206,15 @@ class TestCtxMgrClassAsyncWrapper2(TestCtxMgrClass, AsyncCtxMgrBase):
         await asyncio.sleep(0)
         self.is_async_done = True
 
+class TestCtxMgrIterClassAsyncWrapper(TestIterClass, TestCtxMgrClass, AsyncCtxMgrIterBase):
+    def __init__(self, start, end) -> None:
+        super().__init__(start, end)
+        self.is_async_done = False
+
+    async def aclose(self):
+        await asyncio.sleep(0)
+        self.is_async_done = True
+
 
 class TestCtxMgrClassAsyncPPWrapper(TestCtxMgrClass, AsyncPPCtxMgrBase):
     def __init__(self) -> None:
@@ -220,6 +231,15 @@ class TestCtxMgrClassAsyncPPWrapper2(TestCtxMgrClass, AsyncPPCtxMgrBase):
 
     def __init__(self) -> None:
         super().__init__()
+        self.is_async_done = False
+
+    async def aclose(self):
+        await asyncio.sleep(0)
+        self.is_async_done = True
+
+class TestCtxMgrIterClassAsyncPPWrapper(TestIterClass, TestCtxMgrClass, AsyncPPCtxMgrIterBase):
+    def __init__(self, start, end) -> None:
+        super().__init__(start, end)
         self.is_async_done = False
 
     async def aclose(self):

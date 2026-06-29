@@ -2,171 +2,174 @@
 API
 ======
 
-**unblock** is intended to be extensible in a way where it provides constructs to use in your own program to help you with async programming.
+``unblock`` exposes a small, orthogonal surface. The single converter is
+``asyncify``; the ``executor`` argument selects how work runs.
 
-A few important notes,
+The ``executor`` argument
+-------------------------
+Every construct accepts ``executor``, which may be:
 
-*    unblock essentially uses threads or processes to execute your callables asynchronously. One differentiator in the API is if the API supports process it has PP in the name.
-     For e.g.,
-     asyncify, AsyncBase, AsyncCtxMgrIterBase all use threads whereas their counterparts asyncify_pp, AsyncPPBase, AsyncPPCtxMgrIterBase all use processes.
+* ``"thread"`` (the default) -- run on the shared thread pool.
+* ``"process"`` -- run on the shared process pool.
+* a concrete :class:`concurrent.futures.Executor` instance you supply.
 
-*    Python has 3 main types of `awaitables <https://docs.python.org/3/library/asyncio-task.html#awaitables>`_ : coroutines, Tasks, and Futures. `Coroutines <https://docs.python.org/3/library/asyncio-task.html#coroutines>`_ are probably the most common ones (these are the ones declared with async/await syntax) and note that simply calling a coroutine will not schedule it to be executed.
-     unblock uses `Futures <https://docs.python.org/3/library/asyncio-future.html#future-object>`_ by way of running callables in an executor (thread or process pool executor) and unlike coroutines, futures are started as soon as they are called. 
-     Refer `this <https://blog.miguelgrinberg.com/post/using-javascript-style-async-promises-in-python>`_ article for some more details around this topic (mainly the 'How Async Works in Python' section).
+How results are returned
+------------------------
+Python has several kinds of `awaitables
+<https://docs.python.org/3/library/asyncio-task.html#awaitables>`_. ``unblock``
+uses `Futures <https://docs.python.org/3/library/asyncio-future.html#future-object>`_
+by running callables in an executor. Unlike a bare coroutine, a Future starts as
+soon as it is created.
 
+Concretely:
 
-Examples
----------
+* If a loop is **already running** when you call an asyncified function, the work
+  is submitted immediately and a started awaitable (a Future) is returned.
+* If **no loop is running**, a coroutine is returned that starts the work when it
+  is awaited.
 
-Asyncify methods of existing class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If you have an existing class where you want to convert existing methods to asynchronous without modifying the original class, below is a way to do it. Create a wrapper class that has access to the original instance and also provide methods to asyncify in the _unblock_methods_to_asynchify override method.
+Either way the work binds to the loop that is actually running at execution time.
+
+Asyncify the methods of an existing class
+-----------------------------------------
+To convert an existing class without editing it, subclass it together with
+``AsyncMixin``. The executor is chosen with a class keyword. Public synchronous
+instance methods of the base class become asynchronous on the wrapper; the
+original class is untouched.
 
 .. code-block:: python
 
-   from unblock import AsyncBase
-    
+   from unblock import AsyncMixin
+
    class MyClass:
+       def sync_method1(self):
+           ...
+       def sync_method2(self, arg1, kwarg1="val1"):
+           ...
 
-        def sync_method1(self):
-            #do something
+   class MyClassAsync(MyClass, AsyncMixin):
+       pass
 
-        def sync_method2(self, arg1, kwarg1 = "val1"):
-            #do something
+   # process pool instead:
+   class MyClassAsyncPP(MyClass, AsyncMixin, executor="process"):
+       pass
 
-   #use AsyncPPBase to use Process Pool executor
-    class MyClassAsync(MyClass, AsyncBase):
+   obj = MyClassAsync()
+   await obj.sync_method1()
+   await obj.sync_method2(100)
 
-        @staticmethod
-        def _unblock_methods_to_asynchify():
-            methods = [
-                "sync_method1",
-                "sync_method2",
-                ...
-            ]
-            return methods
+Use ``include=[...]`` or ``exclude=[...]`` as class keywords to control which
+methods are converted.
 
-    #caller usage
-    obj = MyClassAsync():
-    await obj.sync_method1()
-    await obj.sync_method2(100)
-
-
-Asyncify Iterator
-^^^^^^^^^^^^^^^^^^
-Wrapper class can be created to use existing synchronous iterator as asynchronous without modifying existing iterator. Note that AsyncIterBase base class used here inherits AsyncBase and as a result if there are any methods that needs to be converted to asynchronous that can be done as well
+Asyncify an iterator
+--------------------
+``AsyncIterMixin`` adds asynchronous iteration over a synchronous iterator. Each
+item is produced by one thread-pool round-trip.
 
 .. code-block:: python
 
-   from unblock import AsyncIterBase
+   from unblock import AsyncIterMixin
 
    class MyIterator:
+       def __iter__(self):
+           ...
+       def __next__(self):
+           ...
 
-        def __iter__(self):
-            #return iterator
+   class MyIteratorAsync(MyIterator, AsyncIterMixin):
+       pass
 
-        def __next__(self):
-            #return next item
-    
-    #use AsyncPPIterBase to use Process Pool executor
-    class MyIteratorAsync(MyIterator, AsyncIterBase):
+   async for i in MyIteratorAsync():
+       print(i)
 
-        @staticmethod
-        def _unblock_methods_to_asynchify():
-            methods = [
-                #any methods that needs to be converted to async
-            ]
-            return methods
-    
-
-    #caller usage
-    async for i in MyIteratorAsync():
-        print(i)
-
-
-Asyncify Context Manager
-^^^^^^^^^^^^^^^^^^^^^^^^^
-Wrapper class can be created to use existing synchronous context manager as asynchronous without modifying existing class. Note that AsyncCtxMgrBase base class used here inherits AsyncBase and as a result if there are any methods that needs to be converted to asynchronous that can be done as well.
+Asyncify a context manager
+--------------------------
+``AsyncContextMixin`` adds an asynchronous context manager. The synchronous
+``__enter__`` and ``__exit__`` are offloaded to the executor, so they do not block
+the loop.
 
 .. code-block:: python
 
-   from unblock import AsyncCtxMgrBase
+   from unblock import AsyncContextMixin
 
    class MyCtxMgr:
+       def __enter__(self):
+           ...
+       def __exit__(self, exc_type, exc_value, traceback):
+           ...
 
-        def __enter__(self):
-            #return context manager
+   class MyCtxMgrAsync(MyCtxMgr, AsyncContextMixin):
+       pass
 
-        def __exit__(self, exc_type, exc_value, traceback):
-            #responsible for cleanup
+   async with MyCtxMgrAsync():
+       ...
 
-    #use AsyncPPCtxMgrBase to use Process Pool executor 
-   class MyCtxMgrAsync(MyCtxMgr, AsyncCtxMgrBase):
+Cleanup rule on exit:
 
-        #note that this is called automatically. If you don't want it called set call_close_on_exit field on the class to False
-        async def aclose(self):
-            #any asynch cleanup
-    
+* The synchronous ``__exit__`` runs first (offloaded), if present.
+* If ``call_close_on_exit`` is true (the default) and the object has a zero-arg
+  ``aclose`` (sync or coroutine), it is awaited.
+* Otherwise, if there was no ``__exit__`` and the object has a zero-arg ``close``,
+  it is offloaded and awaited.
 
-    #caller usage
-    async with obj in MyCtxMgrAsync():
-        #do something
+Set ``call_close_on_exit = False`` on the class to skip the extra ``close``/
+``aclose`` step. ``AsyncContextMixin`` also works for a class that is not a real
+context manager but exposes ``close()``.
 
-
-Asyncify Context Manager + Iterator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This essentially combines functionality of Asyncify Iterator and Asyncify Context Manager
-
-.. code-block:: python
-
-   from unblock import AsyncCtxMgrIterBase
-    
-   class MyIteratorCtxMgr:
-
-        def __iter__(self):
-            #return iterator
-
-        def __next__(self):
-            #return next item
-
-        #note that this class isn't really a context manager, but it still can be used as one as shown in MyCtxMgrAsync
-        def close(self):
-            #cleanup will be called by async ctx manager by default
-            #set class field call_close_on_exit to False to not call close method as part of cleanup
-    
-    #use AsyncPPCtxMgrIterBase to use Process Pool executor 
-    class MyIteratorCtxMgrAsync(AsyncCtxMgrIterBase):
-        pass
-
-    #caller usage
-    async with obj in MyIteratorCtxMgrAsync():
-        async for i in obj:
-            print(i)
-
-.. caution:: 
-   A word of caution about using process pool constructs (such as AsyncPPBase). Make sure these base classes are used in main process and not in spawned processes which can have undesirable results
-   
-
-Change defaults
-^^^^^^^^^^^^^^^
-unblock by default uses asyncio for event loop. But that can be changed to event loop of your choice as shown in the below example. 
-Similarly default ThreadPoolExecutor and ProcessPoolExecutors can be changed as well.
-
+Asyncify a context manager and iterator together
+------------------------------------------------
+``AsyncContextIterMixin`` combines both behaviours.
 
 .. code-block:: python
 
-   from unblock import set_event_loop, set_threadpool_executor, set_processpool_executor
-    
-    #set a different event loop
-    set_event_loop(event_loop)
+   from unblock import AsyncContextIterMixin
 
-    #set a different ThreadPoolExecutor (has to implement concurrent.futures.ThreadPoolExecutor)
-    set_threadpool_executor(custom_threadpool_executor)
+   class MySource(AsyncContextIterMixin):
+       def __iter__(self):
+           ...
+       def __next__(self):
+           ...
+       def close(self):
+           ...
 
-    #set a different ProcessPoolExecutor (has to implement concurrent.futures.ProcessPoolExecutor)
-    set_processpool_executor(custom_processpool_executor)
+   async with MySource() as src:
+       async for item in src:
+           print(item)
 
+The same protocols are also detected automatically by the ``@asyncify`` class
+decorator, so for the in-place case you often do not need the mixins at all.
 
-Run Unit Tests
-^^^^^^^^^^^^^^^
-Note that in order to run the unit tests, you will require **python 3.8** or higher.
+.. caution::
+   Avoid process-pool constructs inside already-spawned worker processes; nested
+   process pools can have undesirable results. ``unblock`` falls back to a thread
+   when it detects it is running inside a worker process.
+
+Configuration and lifecycle
+---------------------------
+Default pools are created lazily and shut down at interpreter exit. To supply your
+own executors or shut down explicitly:
+
+.. code-block:: python
+
+   from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+   from unblock import set_thread_pool, set_process_pool, shutdown
+
+   set_thread_pool(ThreadPoolExecutor(max_workers=8))
+   set_process_pool(ProcessPoolExecutor(max_workers=2))
+
+   # ... use unblock ...
+
+   shutdown()  # also registered via atexit
+
+API reference
+-------------
+See :ref:`apireference:API reference` for the generated reference, and
+:ref:`caveats:Caveats` for important constraints (cancellation, picklability,
+resource lifecycle).
+
+Run the unit tests
+------------------
+The test suite uses pytest. From a checkout::
+
+   pip install -e ".[test]"
+   pytest --cov=unblock --cov-branch

@@ -1,11 +1,12 @@
 [project]
 name = "get-unblock"
-version = "0.0.1"
-description = "unblock comes with utilities that can be used to convert synchronous functions to async for use in event loop"
+version = "0.1.0"
+description = "unblock comes with utilities that convert synchronous functions to async for use in an event loop"
 dependencies = []
 readme = "README.md"
-requires-python = ">= 3.7"
-license = {file = "LICENSE"}
+requires-python = ">= 3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
   {name = "ranjith", email = "abranjith@gmail.com"}
 ]
@@ -13,7 +14,13 @@ keywords = ["unblock", "unblockio", "unblock io", "asyncify", "async io", "async
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
-  "Programming Language :: Python"
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
 ]
 
 [project.urls]
@@ -23,18 +30,56 @@ Repository = "https://github.com/abranjith/unblock"
 Issues = "https://github.com/abranjith/unblock/issues"
 Changelog = "https://github.com/abranjith/unblock?tab=readme-ov-file#release-notes"
 
+[project.optional-dependencies]
+test = ["pytest>=7", "pytest-asyncio>=0.23", "pytest-cov>=4"]
+docs = ["sphinx>=5.3.0"]
+dev = [
+  "pytest>=7",
+  "pytest-asyncio>=0.23",
+  "pytest-cov>=4",
+  "ruff>=0.5",
+  "mypy>=1.8",
+  "sphinx>=5.3.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.rye]
-managed = true
-dev-dependencies = [
-    "sphinx>=5.3.0",
-]
-
-[tool.hatch.metadata]
-allow-direct-references = true
-
 [tool.hatch.build.targets.wheel]
 packages = ["unblock"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra"
+
+[tool.coverage.run]
+branch = true
+source = ["unblock"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 95
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "@(typing\\.)?overload",
+  "^\\s*\\.\\.\\.\\s*$",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["unblock"]

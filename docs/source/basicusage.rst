@@ -2,25 +2,53 @@
 Basic usage
 ============
 
-Convert synchronous function to asynchronous
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-You can convert your existing synchronous function to asynchronous without modifying any of the logic.
-Simply add asyncio decorator to your function as shown in below example.
+Convert a synchronous function to asynchronous
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Add the ``asyncify`` decorator to an existing synchronous function. Its logic is
+unchanged; calling it now returns an awaitable.
 
 .. code-block:: python
 
    import asyncio
    from unblock import asyncify
-    
+
    @asyncify
    def my_sync_func():
-      #do something
+       ...  # do something blocking
 
+   asyncio.run(my_sync_func())
 
-Convert synchronous method and properties of class to asynchronous
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Existing synchronous methods and properties of a class can be converted to asynchronous as shown in the below example.
-Note that using async_cached_property caches the property value. This is similar to `cached_property <https://docs.python.org/3/library/functools.html#functools.cached_property>`_ from functools library.
+Use a process pool
+^^^^^^^^^^^^^^^^^^
+For CPU-bound work, run on a process pool instead of threads. This works as a
+decorator on any importable (module-level) function.
+
+.. code-block:: python
+
+   from unblock import asyncify
+
+   @asyncify(executor="process")
+   def cpu_bound(n):
+       return sum(i * i for i in range(n))
+
+You may also pass your own executor instance:
+
+.. code-block:: python
+
+   from concurrent.futures import ThreadPoolExecutor
+   from unblock import asyncify
+
+   pool = ThreadPoolExecutor(max_workers=4)
+
+   @asyncify(executor=pool)
+   def work():
+       ...
+
+Convert methods and properties of a class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Synchronous methods and properties can be converted as well. ``async_property``
+runs the getter off the loop; ``async_cached_property`` does the same but caches
+the result (computed once, even under concurrent awaits).
 
 .. code-block:: python
 
@@ -29,73 +57,57 @@ Note that using async_cached_property caches the property value. This is similar
 
    class MyClass:
 
-        @asyncify
-        def my_sync_func(self):
-            #do something
+       @asyncify
+       def my_sync_method(self):
+           ...
 
-        @async_property
-        def prop(self):
-            #return property
+       @async_property
+       def prop(self):
+           ...  # returned value, awaited at access: await obj.prop
 
-        @async_cached_property
-        def cached_prop(self):
-            #value returned is cached
+       @async_cached_property
+       def cached_prop(self):
+           ...  # computed once, then cached
 
-
-Convert all synchronous methods of class to asynchronous
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Convert all synchronous methods of a class to asynchronous. Note that any methods starting with an underscore (e.g. _myfunc) are excluded.
-If you already have methods that are asynchronous, they will continue to work normally.
+Convert all synchronous methods of a class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Applying ``@asyncify`` to a class converts its public synchronous instance
+methods. Methods starting with an underscore, static methods, class methods, and
+methods that are already ``async`` are left unchanged.
 
 .. code-block:: python
 
-   import asyncio
    from unblock import asyncify
 
-    @asyncify
-    class MyClass:
+   @asyncify
+   class MyClass:
 
-        def my_sync_func(self):
-            #do something
+       def my_sync_func(self):
+           ...
 
-        def my_another_sync_func(self):
-            #do something
+       def _private(self):
+           ...  # not converted (private)
 
-        def _my_private_method(self):
-            #this will not be converted to async
+       async def already_async(self):
+           ...  # unchanged
 
-        async def my_async_func(self):
-            #since this is already async, there is no impact
-
-.. note:: 
-   Note that, when asyncify is used on a class, only class methods are converted to asynchronous. Inherited methods from the base classes are not.
-
-
-Process Pool constructs
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Similar to all the examples shown in above sections which uses thread pool executor, if your work requires process pool executor, 
-use below process pool constructs.
-
-*   Convert synchronous function to asynchronous that uses ProcessPool
+Use ``include`` or ``exclude`` to control exactly which methods are converted:
 
 .. code-block:: python
 
-   import asyncio
-   from unblock import asyncify_pp
-    
-   def my_sync_func():
-      #do something
-    
-    my_sync_func = asyncify_pp(my_sync_func)
+   @asyncify(exclude=["validate"])
+   class Client:
+       def fetch(self):
+           ...        # converted
+       def validate(self):
+           ...        # stays synchronous
 
-
-*   Note that asyncify_pp cannot be used with classes unlike asyncify. This is due to constraints with how `pickling works <https://stackoverflow.com/a/52186874>`_ .
-
-.. note:: 
-   Please refer samples.py under tests for some more examples.
-
+.. note::
+   When ``@asyncify`` is used on a class, only methods defined on that class are
+   converted; inherited methods are not. To wrap an existing class without
+   editing it, use the mixins described in the :ref:`api:API` page.
 
 Advanced usage
-^^^^^^^^^^^^^^^
-Refer :ref:`API <api:API>` page for more advanced usage.
+^^^^^^^^^^^^^^
+See the :ref:`api:API` page for the mixins, configuration, and lifecycle helpers,
+and the :ref:`caveats:Caveats` page for important constraints.

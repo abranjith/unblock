@@ -85,8 +85,8 @@ item is produced by one thread-pool round-trip.
 Asyncify a context manager
 --------------------------
 ``AsyncContextMixin`` adds an asynchronous context manager. The synchronous
-``__enter__`` and ``__exit__`` are offloaded to the executor, so they do not block
-the loop.
+``__enter__`` and ``__exit__`` are run on the executor (a worker thread or process),
+so they do not block the event loop.
 
 .. code-block:: python
 
@@ -106,11 +106,12 @@ the loop.
 
 Cleanup rule on exit:
 
-* The synchronous ``__exit__`` runs first (offloaded), if present.
+* The synchronous ``__exit__`` runs first, on the executor rather than the event
+  loop, if present.
 * If ``call_close_on_exit`` is true (the default) and the object has a zero-arg
   ``aclose`` (sync or coroutine), it is awaited.
 * Otherwise, if there was no ``__exit__`` and the object has a zero-arg ``close``,
-  it is offloaded and awaited.
+  it is run on the executor and awaited.
 
 Set ``call_close_on_exit = False`` on the class to skip the extra ``close``/
 ``aclose`` step. ``AsyncContextMixin`` also works for a class that is not a real

@@ -30,7 +30,7 @@ Features
 
   * ``unblock`` works with asyncio-compatible event loops, including the default
     asyncio loop and uvloop. It relies on :meth:`asyncio.loop.run_in_executor`,
-    so it does **not** support trio or curio, which are not asyncio.
+    so it does **not** support libraries, which are not asyncio compatible natively.
 
 * **Managed resources**
 

@@ -74,6 +74,6 @@ A ground-up refactor of the library. There is no compatibility with `0.0.1`.
 * Asynchronous tasks still start in the background when a loop is running; you
   `await` only to collect the result.
 * Works with asyncio-compatible event loops (asyncio, uvloop). It does not
-  support trio/curio, which are not asyncio.
+  support trio/curio, which are not asyncio compatible natively.
 * Ships type information (PEP 561). Supports Python 3.10 and above.
 ```

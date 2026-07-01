@@ -56,4 +56,4 @@ supply your own executors, you remain responsible for their lifecycle.
 Event loop support
 ------------------
 ``unblock`` requires an asyncio-compatible event loop (the default asyncio loop or
-uvloop). It does not support trio, curio etc.
+uvloop). It does not support trio, curio etc which have their own event loops.

@@ -5,12 +5,20 @@ on:
     branches: [main, development]
   pull_request:
   workflow_call:
+    inputs:
+      ref:
+        description: "Git ref to check out. Empty = the ref that triggered the run."
+        required: false
+        type: string
+        default: ""
 
 jobs:
   lint-type:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -32,6 +40,8 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}

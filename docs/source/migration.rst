@@ -2,7 +2,7 @@
 Migration
 =========
 
-Version 0.1.0 is a ground-up refactor with a smaller, unified API. There is no
+Version 0.1.0+ is a ground-up refactor with a smaller, unified API. There is no
 backward compatibility with 0.0.1. This page maps the old names to the new ones.
 
 Functions and decorators

@@ -28,7 +28,7 @@ from .properties import async_cached_property, async_property
 logging.getLogger("unblock").addHandler(logging.NullHandler())
 
 __author__ = "ranjith"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "asyncify",
